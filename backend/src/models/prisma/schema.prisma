@@ -1,0 +1,5 @@
+// This is a pointer file, not a second schema.
+// Prisma only reads one schema per project — the canonical, fully
+// commented entity list lives at backend/prisma/schema.prisma.
+// Keep this folder for generated Prisma Client output only; do not
+// duplicate models here.

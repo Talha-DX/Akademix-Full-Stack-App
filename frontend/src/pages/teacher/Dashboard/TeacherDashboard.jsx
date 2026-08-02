@@ -1,0 +1,88 @@
+import { useEffect, useState } from 'react'
+import { CalendarClock, ClipboardList, Users2, CheckCircle2 } from 'lucide-react'
+import TeacherLayout from '../../../components/common/Layout/TeacherLayout'
+import DashboardStats from '../../../components/charts/DashboardStats'
+import { dashboardApi } from '../../../api/dashboardApi'
+import { useAuth } from '../../../hooks/useAuth'
+
+import MarkAttendance from '../Attendance/MarkAttendance'
+import ClassAttendance from '../Attendance/ClassAttendance'
+import MyTimetable from '../Timetable/MyTimetable'
+import CreateHomework from '../Homework/CreateHomework'
+import MyHomework from '../Homework/MyHomework'
+import CheckSubmissions from '../Homework/CheckSubmissions'
+import MyExams from '../Exams/MyExams'
+import EnterMarks from '../Exams/EnterMarks'
+import MyStudents from '../Students/MyStudents'
+import StudentProgress from '../Students/StudentProgress'
+import TeacherProfile from '../Profile/TeacherProfile'
+
+function Overview() {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState('')
+  useEffect(() => { dashboardApi.stats().then(({ data: response }) => setData(response)).catch(() => setError('Dashboard data could not be loaded.')) }, [])
+  if (error) return <div className="card p-6 text-sm text-coral-600">{error}</div>
+  if (!data) return <div className="card p-6 text-sm text-ink-soft">Loading dashboard…</div>
+  return (
+    <div className="space-y-8">
+      <DashboardStats
+        items={[
+          { label: 'Classes assigned', value: data.classesTaught ?? 0, icon: CalendarClock },
+          { label: 'Homework assigned', value: data.homeworkCount ?? 0, icon: ClipboardList },
+          { label: 'Timetable entries', value: data.timetableToday?.length ?? 0, icon: Users2 },
+          { label: 'Schedule status', value: data.timetableToday?.length ? 'Ready' : 'None', icon: CheckCircle2 },
+        ]}
+      />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="card p-6">
+          <p className="font-display text-base font-semibold text-ink">Today's schedule</p>
+          <div className="mt-5 space-y-3">
+            {data.timetableToday?.length ? data.timetableToday.map((s) => (
+              <div key={s.id} className="flex items-center justify-between rounded-lg bg-surface-tint px-3 py-2.5 text-sm">
+                <span className="text-ink-soft">{s.day} · Period {s.period}</span>
+                <span className="font-medium text-ink">{s.class?.name} {s.class?.section} · {s.subject?.name}</span>
+              </div>
+            )) : <p className="text-sm text-ink-soft">No timetable entries are available.</p>}
+          </div>
+        </div>
+        <div className="card p-6">
+          <p className="font-display text-base font-semibold text-ink">Teaching workload</p>
+          <div className="mt-5 space-y-3">
+            <p className="text-sm text-ink-soft">You have assigned {data.homeworkCount ?? 0} homework item{data.homeworkCount === 1 ? '' : 's'} across your subjects.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const sections = {
+  overview: <Overview />,
+  'mark-attendance': <MarkAttendance />,
+  'class-attendance': <ClassAttendance />,
+  timetable: <MyTimetable />,
+  'create-homework': <CreateHomework />,
+  homework: <MyHomework />,
+  'check-submissions': <CheckSubmissions />,
+  exams: <MyExams />,
+  'enter-marks': <EnterMarks />,
+  'my-students': <MyStudents />,
+  'student-progress': <StudentProgress />,
+  profile: <TeacherProfile />,
+}
+
+export default function TeacherDashboard() {
+  const [active, setActive] = useState('overview')
+  const { user } = useAuth()
+
+  return (
+    <TeacherLayout
+      active={active}
+      onNavigate={setActive}
+      userName={user?.name ?? ''}
+      userMeta={user?.staff?.designation ?? 'Teacher'}
+    >
+      {sections[active] ?? <Overview />}
+    </TeacherLayout>
+  )
+}

@@ -1,0 +1,11 @@
+{
+  "name": "akademix",
+  "private": true,
+  "version": "0.1.0",
+  "description": "School management system — monorepo (frontend + backend, scaffold).",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "install:all": "npm --prefix frontend install && npm --prefix backend install"
+  }
+}
