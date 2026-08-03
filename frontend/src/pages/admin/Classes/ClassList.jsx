@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { PencilLine, Search, Trash2, Users } from 'lucide-react'
 import Modal from '../../../components/common/Modal'
 import ClassForm from '../../../components/admin/ClassForm'
-import { createClass, deleteClass, getClasses, updateClass } from '../../../utils/adminCrudStore'
+import { classApi } from '../../../api/classApi'
+import { useNotificationContext } from '../../../context/NotificationContext'
+import { getApiErrorMessage } from '../../../utils/adminPeople'
 
 const defaultForm = {
   name: '',
@@ -13,17 +15,31 @@ const defaultForm = {
 }
 
 export default function ClassList() {
-  const [classes, setClasses] = useState(getClasses)
+  const { notify } = useNotificationContext()
+  const [classes, setClasses] = useState([])
   const [query, setQuery] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(defaultForm)
   const [submitting, setSubmitting] = useState(false)
 
+  const loadClasses = async () => {
+    try {
+      const res = await classApi.list()
+      setClasses(Array.isArray(res.data) ? res.data : [])
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to load classes.'), 'error')
+    }
+  }
+
+  useEffect(() => {
+    loadClasses()
+  }, [])
+
   const filteredClasses = useMemo(() => {
     const term = query.trim().toLowerCase()
     if (!term) return classes
-    return classes.filter((item) => [item.name, item.section, item.teacher].join(' ').toLowerCase().includes(term))
+    return classes.filter((item) => [item.name, item.section].join(' ').toLowerCase().includes(term))
   }, [classes, query])
 
   const openCreate = () => {
@@ -35,11 +51,11 @@ export default function ClassList() {
   const openEdit = (item) => {
     setEditingId(item.id)
     setForm({
-      name: item.name,
-      section: item.section,
-      teacher: item.teacher,
-      capacity: item.capacity,
-      status: item.status,
+      name: item.name || '',
+      section: item.section || 'A',
+      teacher: '',
+      capacity: 30,
+      status: 'Active',
     })
     setModalOpen(true)
   }
@@ -49,31 +65,39 @@ export default function ClassList() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setSubmitting(true)
-
-    const payload = {
-      ...form,
-      capacity: Number(form.capacity) || 30,
+    try {
+      if (editingId) {
+        await classApi.update(editingId, { name: form.name, section: form.section })
+        notify('Class updated successfully.', 'success')
+      } else {
+        await classApi.create({ name: form.name, section: form.section })
+        notify('Class created successfully.', 'success')
+      }
+      setModalOpen(false)
+      setForm(defaultForm)
+      setEditingId(null)
+      await loadClasses()
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to save class.'), 'error')
+    } finally {
+      setSubmitting(false)
     }
-
-    const next = editingId ? updateClass(editingId, payload) : createClass(payload)
-    setClasses(next)
-    setModalOpen(false)
-    setSubmitting(false)
-    setForm(defaultForm)
-    setEditingId(null)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this class?')) {
-      setClasses(deleteClass(id))
+      try {
+        await classApi.remove(id)
+        notify('Class deleted successfully.', 'success')
+        await loadClasses()
+      } catch (error) {
+        notify(getApiErrorMessage(error, 'Failed to delete class.'), 'error')
+      }
     }
   }
-
-  const activeCount = classes.filter((item) => item.status === 'Active').length
-  const avgCapacity = classes.length ? Math.round(classes.reduce((total, item) => total + Number(item.capacity || 0), 0) / classes.length) : 0
 
   return (
     <div className="space-y-6">
@@ -82,24 +106,22 @@ export default function ClassList() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="font-display text-xl font-semibold text-ink">Class library</p>
-              <p className="mt-1 text-sm text-ink-soft">Manage every class, section, and homeroom teacher from a single view.</p>
+              <p className="mt-1 text-sm text-ink-soft">Manage every class and section directly in the database.</p>
             </div>
             <button onClick={openCreate} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
               Add class
             </button>
           </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-line bg-surface-tint p-4">
               <p className="text-2xl font-semibold text-ink">{classes.length}</p>
-              <p className="mt-1 text-sm text-ink-soft">Classes</p>
+              <p className="mt-1 text-sm text-ink-soft">Total Classes</p>
             </div>
             <div className="rounded-2xl border border-line bg-surface-tint p-4">
-              <p className="text-2xl font-semibold text-ink">{activeCount}</p>
-              <p className="mt-1 text-sm text-ink-soft">Active</p>
-            </div>
-            <div className="rounded-2xl border border-line bg-surface-tint p-4">
-              <p className="text-2xl font-semibold text-ink">{avgCapacity}</p>
-              <p className="mt-1 text-sm text-ink-soft">Avg. capacity</p>
+              <p className="text-2xl font-semibold text-ink">
+                {classes.reduce((total, c) => total + (c.students?.length || 0), 0)}
+              </p>
+              <p className="mt-1 text-sm text-ink-soft">Total Enrolled Students</p>
             </div>
           </div>
         </div>
@@ -115,7 +137,7 @@ export default function ClassList() {
           </div>
           <label className="mt-5 flex items-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-ink-soft">
             <Search size={16} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search class or teacher" className="w-full bg-transparent outline-none" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search class or section" className="w-full bg-transparent outline-none" />
           </label>
         </div>
       </div>
@@ -127,9 +149,8 @@ export default function ClassList() {
               <tr>
                 <th className="px-5 py-3">Class</th>
                 <th className="px-5 py-3">Section</th>
-                <th className="px-5 py-3">Teacher</th>
-                <th className="px-5 py-3">Capacity</th>
-                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Students</th>
+                <th className="px-5 py-3">Subjects</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -138,13 +159,8 @@ export default function ClassList() {
                 <tr key={item.id} className="bg-white/70">
                   <td className="px-5 py-3.5 font-semibold text-ink">{item.name}</td>
                   <td className="px-5 py-3.5 text-ink-soft">{item.section}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.teacher}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.capacity}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'Active' ? 'bg-brand-50 text-brand-700' : item.status === 'On hold' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-500/10 text-slate-600'}`}>
-                      {item.status}
-                    </span>
-                  </td>
+                  <td className="px-5 py-3.5 text-ink-soft">{item.students?.length || 0}</td>
+                  <td className="px-5 py-3.5 text-ink-soft">{item.subjects?.length || 0}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex justify-end gap-2">
                       <button onClick={() => openEdit(item)} className="rounded-lg border border-line p-2 text-ink-soft hover:bg-surface-tint">
@@ -157,6 +173,13 @@ export default function ClassList() {
                   </td>
                 </tr>
               ))}
+              {!filteredClasses.length && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-6 text-center text-sm text-ink-soft">
+                    No classes found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

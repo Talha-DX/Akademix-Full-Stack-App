@@ -1,27 +1,54 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, UserCog } from 'lucide-react'
 import Input from '../../../components/forms/Input'
 import Select from '../../../components/forms/Select'
-import { getUsers, updateUser } from '../../../utils/adminCrudStore'
+import { userApi } from '../../../api/userApi'
+import { useNotificationContext } from '../../../context/NotificationContext'
+import { getApiErrorMessage } from '../../../utils/adminPeople'
 
 const defaultForm = {
   name: '',
   email: '',
+  phone: '',
   role: 'TEACHER',
-  status: 'Active',
-  lastLogin: 'Never',
+  isActive: true,
 }
 
 export default function EditUser() {
-  const users = useMemo(() => getUsers(), [])
-  const [selectedId, setSelectedId] = useState(users[0]?.id ?? '')
+  const { notify } = useNotificationContext()
+  const [users, setUsers] = useState([])
+  const [selectedId, setSelectedId] = useState('')
   const [form, setForm] = useState(defaultForm)
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  const loadUsers = async () => {
+    try {
+      const res = await userApi.list({ limit: 100 })
+      const listData = res.data?.data || (Array.isArray(res.data) ? res.data : [])
+      setUsers(listData)
+      if (listData.length && !selectedId) {
+        setSelectedId(listData[0].id)
+        setForm({
+          name: listData[0].name || '',
+          email: listData[0].email || '',
+          phone: listData[0].phone || '',
+          role: listData[0].role || 'TEACHER',
+          isActive: listData[0].isActive ?? true,
+        })
+      }
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to load user accounts.'), 'error')
+    }
+  }
+
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
   const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
+    const { name, value, type, checked } = event.target
+    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleSelect = (event) => {
@@ -30,21 +57,34 @@ export default function EditUser() {
     const selected = users.find((item) => item.id === id)
     if (selected) {
       setForm({
-        name: selected.name,
-        email: selected.email,
-        role: selected.role,
-        status: selected.status,
-        lastLogin: selected.lastLogin,
+        name: selected.name || '',
+        email: selected.email || '',
+        phone: selected.phone || '',
+        role: selected.role || 'TEACHER',
+        isActive: selected.isActive ?? true,
       })
     }
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+    if (!selectedId) return
     setSubmitting(true)
-    updateUser(selectedId, form)
-    setSaved(true)
-    setSubmitting(false)
+    setSaved(false)
+    try {
+      await userApi.update(selectedId, {
+        name: form.name,
+        phone: form.phone || undefined,
+        isActive: Boolean(form.isActive),
+      })
+      setSaved(true)
+      notify('User profile updated successfully.', 'success')
+      await loadUsers()
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to update user profile.'), 'error')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -56,7 +96,7 @@ export default function EditUser() {
           </div>
           <div>
             <p className="font-display text-xl font-semibold text-ink">Update a user profile</p>
-            <p className="mt-1 text-sm text-ink-soft">Change role, status, or access details for existing portal users.</p>
+            <p className="mt-1 text-sm text-ink-soft">Change name, phone, or active status for existing portal users.</p>
           </div>
         </div>
         {saved && (
@@ -66,15 +106,12 @@ export default function EditUser() {
           </div>
         )}
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <Select label="Choose user" value={selectedId} onChange={handleSelect} options={users.map((item) => ({ value: item.id, label: item.name }))} />
+          <Select label="Choose user" value={selectedId} onChange={handleSelect} options={users.map((item) => ({ value: item.id, label: `${item.name} (${item.email})` }))} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Full name" name="name" value={form.name} onChange={handleChange} required />
-            <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
-            <Select label="Role" name="role" value={form.role} onChange={handleChange} options={['ADMIN', 'TEACHER', 'STUDENT'].map((item) => ({ value: item, label: item }))} />
-            <Select label="Status" name="status" value={form.status} onChange={handleChange} options={['Active', 'Inactive', 'Suspended'].map((item) => ({ value: item, label: item }))} />
-            <div className="sm:col-span-2">
-              <Input label="Last login" name="lastLogin" value={form.lastLogin} onChange={handleChange} />
-            </div>
+            <Input label="Email" name="email" type="email" value={form.email} disabled />
+            <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} />
+            <Select label="Status" name="isActive" value={form.isActive ? 'true' : 'false'} onChange={(e) => setForm((c) => ({ ...c, isActive: e.target.value === 'true' }))} options={[{ value: 'true', label: 'Active' }, { value: 'false', label: 'Inactive' }]} />
           </div>
           <div className="flex justify-end">
             <button type="submit" disabled={submitting} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
@@ -91,14 +128,15 @@ export default function EditUser() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-ink">{item.name}</p>
-                  <p className="text-sm text-ink-soft">{item.email}</p>
+                  <p className="text-sm text-ink-soft">{item.email} · {item.role}</p>
                 </div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'Active' ? 'bg-brand-50 text-brand-700' : 'bg-amber-500/10 text-amber-600'}`}>
-                  {item.status}
+                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.isActive !== false ? 'bg-brand-50 text-brand-700' : 'bg-amber-500/10 text-amber-600'}`}>
+                  {item.isActive !== false ? 'Active' : 'Inactive'}
                 </span>
               </div>
             </div>
           ))}
+          {!users.length && <p className="text-sm text-ink-soft">No accounts found.</p>}
         </div>
       </div>
     </div>

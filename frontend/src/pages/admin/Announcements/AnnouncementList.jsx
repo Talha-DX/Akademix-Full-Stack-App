@@ -1,30 +1,44 @@
-import { useMemo, useState } from 'react'
-import { BellRing, PlusCircle, Search, Trash2, PencilLine } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { PlusCircle, Search, Trash2, PencilLine } from 'lucide-react'
 import Modal from '../../../components/common/Modal'
 import Input from '../../../components/forms/Input'
 import Select from '../../../components/forms/Select'
-import { createAnnouncement, deleteAnnouncement, getAnnouncements, updateAnnouncement } from '../../../utils/adminModuleStore'
+import { announcementApi } from '../../../api/announcementApi'
+import { useNotificationContext } from '../../../context/NotificationContext'
+import { getApiErrorMessage } from '../../../utils/adminPeople'
 
 const defaultForm = {
   title: '',
-  audience: 'All students',
-  priority: 'Medium',
-  status: 'Published',
-  createdAt: new Date().toISOString().slice(0, 10),
+  body: '',
+  audience: 'ALL',
 }
 
 export default function AnnouncementList() {
-  const [announcements, setAnnouncements] = useState(getAnnouncements)
+  const { notify } = useNotificationContext()
+  const [announcements, setAnnouncements] = useState([])
   const [query, setQuery] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(defaultForm)
   const [submitting, setSubmitting] = useState(false)
 
+  const loadAnnouncements = async () => {
+    try {
+      const res = await announcementApi.list()
+      setAnnouncements(Array.isArray(res.data) ? res.data : [])
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to load announcements.'), 'error')
+    }
+  }
+
+  useEffect(() => {
+    loadAnnouncements()
+  }, [])
+
   const filteredAnnouncements = useMemo(() => {
     const term = query.trim().toLowerCase()
     if (!term) return announcements
-    return announcements.filter((item) => [item.title, item.audience, item.priority].join(' ').toLowerCase().includes(term))
+    return announcements.filter((item) => [item.title, item.body, item.audience].join(' ').toLowerCase().includes(term))
   }, [announcements, query])
 
   const openCreate = () => {
@@ -36,11 +50,9 @@ export default function AnnouncementList() {
   const openEdit = (item) => {
     setEditingId(item.id)
     setForm({
-      title: item.title,
-      audience: item.audience,
-      priority: item.priority,
-      status: item.status,
-      createdAt: item.createdAt,
+      title: item.title || '',
+      body: item.body || '',
+      audience: item.audience || 'ALL',
     })
     setModalOpen(true)
   }
@@ -50,21 +62,42 @@ export default function AnnouncementList() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setSubmitting(true)
-    const payload = { ...form }
-    const next = editingId ? updateAnnouncement(editingId, payload) : createAnnouncement(payload)
-    setAnnouncements(next)
-    setModalOpen(false)
-    setForm(defaultForm)
-    setEditingId(null)
-    setSubmitting(false)
+    try {
+      const payload = {
+        title: form.title,
+        body: form.body,
+        audience: form.audience,
+      }
+      if (editingId) {
+        await announcementApi.update(editingId, payload)
+        notify('Announcement updated successfully.', 'success')
+      } else {
+        await announcementApi.create(payload)
+        notify('Announcement created successfully.', 'success')
+      }
+      setModalOpen(false)
+      setForm(defaultForm)
+      setEditingId(null)
+      await loadAnnouncements()
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to save announcement.'), 'error')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this announcement?')) {
-      setAnnouncements(deleteAnnouncement(id))
+      try {
+        await announcementApi.remove(id)
+        notify('Announcement deleted successfully.', 'success')
+        await loadAnnouncements()
+      } catch (error) {
+        notify(getApiErrorMessage(error, 'Failed to delete announcement.'), 'error')
+      }
     }
   }
 
@@ -74,7 +107,7 @@ export default function AnnouncementList() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="font-display text-xl font-semibold text-ink">Announcements</p>
-            <p className="mt-1 text-sm text-ink-soft">Send updates to students, parents, or staff with priority and status control.</p>
+            <p className="mt-1 text-sm text-ink-soft">Send updates to students, teachers, or administrators stored in PostgreSQL.</p>
           </div>
           <button onClick={openCreate} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
             <span className="flex items-center gap-2"><PlusCircle size={16} /> Create announcement</span>
@@ -95,9 +128,8 @@ export default function AnnouncementList() {
             <thead className="bg-surface-tint text-xs font-mono uppercase tracking-wide text-ink-soft">
               <tr>
                 <th className="px-5 py-3">Title</th>
+                <th className="px-5 py-3">Body</th>
                 <th className="px-5 py-3">Audience</th>
-                <th className="px-5 py-3">Priority</th>
-                <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3">Created</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
@@ -106,14 +138,9 @@ export default function AnnouncementList() {
               {filteredAnnouncements.map((item) => (
                 <tr key={item.id} className="bg-white/70">
                   <td className="px-5 py-3.5 font-semibold text-ink">{item.title}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.audience}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.priority}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'Published' ? 'bg-brand-50 text-brand-700' : 'bg-amber-500/10 text-amber-600'}`}>
-                      {item.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.createdAt}</td>
+                  <td className="px-5 py-3.5 text-ink-soft max-w-xs truncate">{item.body}</td>
+                  <td className="px-5 py-3.5 text-ink-soft font-mono text-xs">{item.audience}</td>
+                  <td className="px-5 py-3.5 text-ink-soft">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex justify-end gap-2">
                       <button onClick={() => openEdit(item)} className="rounded-lg border border-line p-2 text-ink-soft hover:bg-surface-tint"><PencilLine size={16} /></button>
@@ -122,6 +149,13 @@ export default function AnnouncementList() {
                   </td>
                 </tr>
               ))}
+              {!filteredAnnouncements.length && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-6 text-center text-sm text-ink-soft">
+                    No announcements found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -130,12 +164,30 @@ export default function AnnouncementList() {
       <Modal open={modalOpen} title={editingId ? 'Edit announcement' : 'Create announcement'} onClose={() => setModalOpen(false)}>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <Input label="Title" name="title" value={form.title} onChange={handleChange} required />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Select label="Audience" name="audience" value={form.audience} onChange={handleChange} options={['All students', 'Parents', 'Staff', 'All'].map((item) => ({ value: item, label: item }))} />
-            <Select label="Priority" name="priority" value={form.priority} onChange={handleChange} options={['High', 'Medium', 'Low'].map((item) => ({ value: item, label: item }))} />
-            <Select label="Status" name="status" value={form.status} onChange={handleChange} options={['Published', 'Draft', 'Archived'].map((item) => ({ value: item, label: item }))} />
-            <Input label="Created date" name="createdAt" type="date" value={form.createdAt} onChange={handleChange} required />
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-soft mb-1">Body</label>
+            <textarea
+              name="body"
+              value={form.body}
+              onChange={handleChange}
+              rows={3}
+              required
+              className="w-full rounded-xl border border-line bg-white p-3 text-sm text-ink outline-none focus:border-brand-500"
+              placeholder="Announcement details..."
+            />
           </div>
+          <Select
+            label="Audience"
+            name="audience"
+            value={form.audience}
+            onChange={handleChange}
+            options={[
+              { value: 'ALL', label: 'All Users' },
+              { value: 'ADMIN', label: 'Admins Only' },
+              { value: 'TEACHER', label: 'Teachers Only' },
+              { value: 'STUDENT', label: 'Students Only' },
+            ]}
+          />
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-surface-tint">Cancel</button>
             <button type="submit" disabled={submitting} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">{submitting ? 'Saving…' : editingId ? 'Update' : 'Create'}</button>

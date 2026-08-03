@@ -1,6 +1,7 @@
 // Result controller — marks per student/subject/exam, entered by teachers.
 import { prisma } from '../models/index.js'
 import { asyncHandler } from '../utils/helpers.js'
+import { renderReportCard } from '../services/pdfService.js'
 
 function computeGrade(marks, maxMarks) {
   const pct = (marks / maxMarks) * 100
@@ -69,4 +70,17 @@ export const byStudent = asyncHandler(async (req, res) => {
     include: { subject: true, exam: true },
   })
   res.json(results)
+})
+
+export const downloadReportCard = asyncHandler(async (req, res) => {
+  const student = await prisma.student.findFirst({
+    where: { id: req.params.studentId, class: { schoolId: req.user.schoolId }, ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}) },
+    include: { user: true, class: true },
+  })
+  if (!student) return res.status(404).json({ message: 'Student not found' })
+  const where = { studentId: student.id, ...(req.query.examId ? { examId: req.query.examId } : {}) }
+  const results = await prisma.examResult.findMany({ where, include: { subject: true, exam: true } })
+  if (!results.length) return res.status(404).json({ message: 'No results found' })
+  const pdf = await renderReportCard({ studentName: student.user.name, className: `${student.class.name} ${student.class.section}`, term: results[0].exam.term, results })
+  res.type('application/pdf').attachment(`report-card-${student.id}.pdf`).send(pdf)
 })

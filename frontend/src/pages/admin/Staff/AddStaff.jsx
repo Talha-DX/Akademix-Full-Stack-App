@@ -49,7 +49,7 @@ export default function AddStaff() {
         email: form.email,
         phone: form.phone || undefined,
         designation: composeDesignation(form.department, form.title),
-        password: form.password || undefined,
+        password: form.password,
       })
       setSaved(true)
       notify('Employee onboarded successfully.', 'success')
@@ -87,7 +87,7 @@ export default function AddStaff() {
             <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} />
             <Input label="Department" name="department" value={form.department} onChange={handleChange} required />
             <Input label="Designation title" name="title" value={form.title} onChange={handleChange} required />
-            <Input label="Initial password (optional)" name="password" value={form.password} onChange={handleChange} placeholder="Defaults to changeme123" />
+            <Input label="Initial password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} placeholder="At least 8 characters" />
           </div>
           <div className="flex justify-end">
             <button type="submit" disabled={submitting} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">

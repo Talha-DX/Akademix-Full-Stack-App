@@ -1,6 +1,7 @@
 // Fee controller — fee structures (per class/category) + student invoices.
 import { prisma } from '../models/index.js'
 import { asyncHandler } from '../utils/helpers.js'
+import { renderFeeReceipt } from '../services/pdfService.js'
 
 // --- Fee structures ---
 
@@ -63,4 +64,15 @@ export const payInvoice = asyncHandler(async (req, res) => {
 export const removeInvoice = asyncHandler(async (req, res) => {
   await prisma.feeInvoice.delete({ where: { id: req.params.id } })
   res.status(204).send()
+})
+
+export const downloadReceipt = asyncHandler(async (req, res) => {
+  const invoice = await prisma.feeInvoice.findFirst({
+    where: { id: req.params.id, student: { class: { schoolId: req.user.schoolId }, ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}) } },
+    include: { student: { include: { user: true } } },
+  })
+  if (!invoice) return res.status(404).json({ message: 'Invoice not found' })
+  if (invoice.status !== 'PAID') return res.status(400).json({ message: 'A receipt is available after payment is recorded' })
+  const pdf = await renderFeeReceipt({ studentName: invoice.student.user.name, term: invoice.term, amount: invoice.amount.toString() })
+  res.type('application/pdf').attachment(`fee-receipt-${invoice.id}.pdf`).send(pdf)
 })

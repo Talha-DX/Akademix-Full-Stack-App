@@ -105,7 +105,7 @@ export default function StudentList() {
           phone: form.phone || undefined,
           classId: form.classId,
           dob: form.dob,
-          password: form.password || undefined,
+          password: form.password,
         })
         notify('Student admitted successfully.', 'success')
       }
@@ -230,7 +230,7 @@ export default function StudentList() {
               onChange={handleChange}
               options={classes.map((item) => ({ value: item.id, label: `${item.name} · ${item.section}` }))}
             />
-            {!editingId && <Input label="Initial password (optional)" name="password" value={form.password} onChange={handleChange} placeholder="Defaults to changeme123" />}
+            {!editingId && <Input label="Initial password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} placeholder="At least 8 characters" />}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-surface-tint">Cancel</button>

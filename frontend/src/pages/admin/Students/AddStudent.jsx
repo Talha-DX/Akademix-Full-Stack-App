@@ -57,7 +57,7 @@ export default function AddStudent() {
         phone: form.phone || undefined,
         classId: form.classId,
         dob: form.dob,
-        password: form.password || undefined,
+        password: form.password,
       })
       setSaved(true)
       notify('Student admitted successfully.', 'success')
@@ -108,7 +108,7 @@ export default function AddStudent() {
               onChange={handleChange}
               options={classes.map((item) => ({ value: item.id, label: `${item.name} · ${item.section}` }))}
             />
-            <Input label="Initial password (optional)" name="password" value={form.password} onChange={handleChange} placeholder="Defaults to changeme123" />
+            <Input label="Initial password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} placeholder="At least 8 characters" />
           </div>
           <div className="flex justify-end">
             <button type="submit" disabled={submitting} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">

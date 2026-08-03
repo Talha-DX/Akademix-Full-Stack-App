@@ -9,6 +9,7 @@ const router = Router()
 
 router.get('/', requireAuth, requireRole('ADMIN', 'TEACHER'), studentController.list)
 router.get('/:id', requireAuth, requireRole('ADMIN', 'TEACHER'), studentController.getById)
+router.get('/:id/id-card', requireAuth, studentController.downloadIdCard)
 router.post('/', requireAuth, requireRole('ADMIN'), validate(studentSchema), studentController.create)
 router.put('/:id', requireAuth, requireRole('ADMIN'), studentController.update)
 router.delete('/:id', requireAuth, requireRole('ADMIN'), studentController.remove)

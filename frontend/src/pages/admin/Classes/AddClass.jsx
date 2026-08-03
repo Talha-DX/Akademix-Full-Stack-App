@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, GraduationCap } from 'lucide-react'
 import ClassForm from '../../../components/admin/ClassForm'
-import { createClass, getClasses } from '../../../utils/adminCrudStore'
+import { classApi } from '../../../api/classApi'
+import { useNotificationContext } from '../../../context/NotificationContext'
+import { getApiErrorMessage } from '../../../utils/adminPeople'
 
 const defaultForm = {
   name: '',
@@ -12,26 +14,48 @@ const defaultForm = {
 }
 
 export default function AddClass() {
+  const { notify } = useNotificationContext()
   const [form, setForm] = useState(defaultForm)
+  const [classes, setClasses] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const loadClasses = async () => {
+    try {
+      const res = await classApi.list()
+      setClasses(Array.isArray(res.data) ? res.data : [])
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to fetch classes.'), 'error')
+    }
+  }
+
+  useEffect(() => {
+    loadClasses()
+  }, [])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setSubmitting(true)
-    const payload = {
-      ...form,
-      capacity: Number(form.capacity) || 30,
+    setSaved(false)
+    try {
+      await classApi.create({
+        name: form.name,
+        section: form.section,
+      })
+      setSaved(true)
+      notify('Class created successfully.', 'success')
+      setForm(defaultForm)
+      await loadClasses()
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to create class.'), 'error')
+    } finally {
+      setSubmitting(false)
     }
-    createClass(payload)
-    setSaved(true)
-    setForm(defaultForm)
-    setSubmitting(false)
   }
 
   return (
@@ -43,7 +67,7 @@ export default function AddClass() {
           </div>
           <div>
             <p className="font-display text-xl font-semibold text-ink">Create a new class</p>
-            <p className="mt-1 text-sm text-ink-soft">Add the class name, timetable section, and homeroom teacher in seconds.</p>
+            <p className="mt-1 text-sm text-ink-soft">Add the class name and section directly to the database.</p>
           </div>
         </div>
         {saved && (
@@ -59,17 +83,18 @@ export default function AddClass() {
       <div className="card p-6">
         <p className="font-display text-lg font-semibold text-ink">Current class overview</p>
         <div className="mt-5 space-y-3">
-          {getClasses().map((item) => (
+          {classes.map((item) => (
             <div key={item.id} className="flex items-center justify-between rounded-2xl border border-line bg-surface-tint px-4 py-3">
               <div>
                 <p className="font-semibold text-ink">{item.name} · {item.section}</p>
-                <p className="text-sm text-ink-soft">{item.teacher}</p>
+                <p className="text-sm text-ink-soft">{item.students?.length || 0} Students</p>
               </div>
-              <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'Active' ? 'bg-brand-50 text-brand-700' : item.status === 'On hold' ? 'bg-amber-500/10 text-amber-600' : 'bg-slate-500/10 text-slate-600'}`}>
-                {item.status}
+              <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
+                Active
               </span>
             </div>
           ))}
+          {!classes.length && <p className="text-sm text-ink-soft">No classes found in database.</p>}
         </div>
       </div>
     </div>

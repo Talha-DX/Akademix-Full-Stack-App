@@ -1,27 +1,17 @@
-// Auth controller — register, login, current-user, change password.
-//
-// Registration is ADMIN-only. There is no public signup for teachers,
-// students, or parents (the parent role no longer exists at all).
-// Registering an admin creates a brand-new School in the same
-// transaction, and that admin becomes the sole owner/manager of it.
-// Students and staff are never self-registered — the admin creates
-// those accounts from inside the dashboard (see studentController.create
-// and staffController.create).
+// Auth controller — register, login, current-user, change password, password recovery.
+import crypto from 'crypto'
 import { prisma } from '../models/index.js'
 import { hashPassword, comparePassword } from '../utils/bcrypt.js'
 import { signToken } from '../utils/jwt.js'
 import { asyncHandler } from '../utils/helpers.js'
+import { sendPasswordResetEmail } from '../services/emailService.js'
 
 function toPublicUser(user) {
-  const { password, ...rest } = user
+  const { password, resetToken, resetTokenExpiry, ...rest } = user
   return rest
 }
 
 // POST /api/auth/register
-//
-// Body: { email, password, confirmPassword }
-// Creates a new School (placeholder name the admin edits later from
-// Institute Profile) plus a single ADMIN user that owns it.
 export const register = asyncHandler(async (req, res) => {
   const { email, password } = req.body
 
@@ -70,7 +60,6 @@ export const login = asyncHandler(async (req, res) => {
 })
 
 // POST /api/auth/logout
-// Stateless JWT — nothing to invalidate server-side; client just discards the token.
 export const logout = asyncHandler(async (req, res) => {
   res.json({ message: 'Logged out' })
 })
@@ -97,4 +86,57 @@ export const changePassword = asyncHandler(async (req, res) => {
     data: { password: await hashPassword(newPassword) },
   })
   res.json({ message: 'Password updated' })
+})
+
+// POST /api/auth/forgot-password
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user) {
+    return res.json({ message: 'If an account with that email exists, password reset instructions have been sent.' })
+  }
+
+  const token = crypto.randomBytes(32).toString('hex')
+  const expiry = new Date(Date.now() + 3600000) // 1 hour
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { resetToken: token, resetTokenExpiry: expiry },
+  })
+
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`
+  await sendPasswordResetEmail(email, { name: user.name, resetUrl, expiresIn: '1 hour' })
+
+  // Never reveal whether an account exists or expose the reset token in an API response.
+  res.json({ message: 'If an account with that email exists, password reset instructions have been sent.' })
+})
+
+// POST /api/auth/reset-password
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body
+  if (!token || !newPassword || newPassword.length < 8) {
+    return res.status(400).json({ message: 'A valid token and a password of at least 8 characters are required' })
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      resetToken: token,
+      resetTokenExpiry: { gte: new Date() },
+    },
+  })
+
+  if (!user) {
+    return res.status(400).json({ message: 'Invalid or expired password reset token' })
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: await hashPassword(newPassword),
+      resetToken: null,
+      resetTokenExpiry: null,
+    },
+  })
+
+  res.json({ message: 'Password has been reset successfully. You can now login.' })
 })

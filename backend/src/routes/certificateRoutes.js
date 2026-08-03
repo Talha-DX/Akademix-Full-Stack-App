@@ -8,6 +8,7 @@ import { certificateSchema } from '../utils/validators.js'
 const router = Router()
 
 router.get('/', requireAuth, certificateController.list)
+router.get('/:id/pdf', requireAuth, certificateController.downloadPdf)
 router.post('/', requireAuth, requireRole('ADMIN'), validate(certificateSchema), certificateController.create)
 router.delete('/:id', requireAuth, requireRole('ADMIN'), certificateController.remove)
 

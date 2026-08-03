@@ -1,34 +1,66 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import Input from '../../../components/forms/Input'
 import Select from '../../../components/forms/Select'
-import { createUser, getUsers } from '../../../utils/adminCrudStore'
+import { userApi } from '../../../api/userApi'
+import { useNotificationContext } from '../../../context/NotificationContext'
+import { getApiErrorMessage } from '../../../utils/adminPeople'
 
 const defaultForm = {
   name: '',
   email: '',
+  phone: '',
   role: 'TEACHER',
-  status: 'Active',
-  lastLogin: 'Never',
+  password: '',
 }
 
 export default function AddUser() {
+  const { notify } = useNotificationContext()
   const [form, setForm] = useState(defaultForm)
+  const [recentUsers, setRecentUsers] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const loadUsers = async () => {
+    try {
+      const res = await userApi.list({ limit: 5 })
+      const listData = res.data?.data || (Array.isArray(res.data) ? res.data : [])
+      setRecentUsers(listData)
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to load user accounts.'), 'error')
+    }
+  }
+
+  useEffect(() => {
+    loadUsers()
+  }, [])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setSubmitting(true)
-    createUser(form)
-    setSaved(true)
-    setForm(defaultForm)
-    setSubmitting(false)
+    setSaved(false)
+    try {
+      await userApi.create({
+        name: form.name,
+        email: form.email,
+        phone: form.phone || undefined,
+        role: form.role,
+        password: form.password,
+      })
+      setSaved(true)
+      notify('User account created successfully.', 'success')
+      setForm(defaultForm)
+      await loadUsers()
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to create user.'), 'error')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -53,10 +85,10 @@ export default function AddUser() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Full name" name="name" value={form.name} onChange={handleChange} required />
             <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
+            <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} />
             <Select label="Role" name="role" value={form.role} onChange={handleChange} options={['ADMIN', 'TEACHER', 'STUDENT'].map((item) => ({ value: item, label: item }))} />
-            <Select label="Status" name="status" value={form.status} onChange={handleChange} options={['Active', 'Inactive', 'Suspended'].map((item) => ({ value: item, label: item }))} />
             <div className="sm:col-span-2">
-              <Input label="Last login" name="lastLogin" value={form.lastLogin} onChange={handleChange} />
+              <Input label="Initial Password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} placeholder="At least 8 characters" />
             </div>
           </div>
           <div className="flex justify-end">
@@ -69,19 +101,20 @@ export default function AddUser() {
       <div className="card p-6">
         <p className="font-display text-lg font-semibold text-ink">Recent accounts</p>
         <div className="mt-5 space-y-3">
-          {getUsers().slice(0, 4).map((item) => (
+          {recentUsers.map((item) => (
             <div key={item.id} className="rounded-2xl border border-line bg-surface-tint px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-ink">{item.name}</p>
-                  <p className="text-sm text-ink-soft">{item.role}</p>
+                  <p className="text-sm text-ink-soft">{item.email} · {item.role}</p>
                 </div>
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.status === 'Active' ? 'bg-brand-50 text-brand-700' : 'bg-amber-500/10 text-amber-600'}`}>
-                  {item.status}
+                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${item.isActive !== false ? 'bg-brand-50 text-brand-700' : 'bg-amber-500/10 text-amber-600'}`}>
+                  {item.isActive !== false ? 'Active' : 'Inactive'}
                 </span>
               </div>
             </div>
           ))}
+          {!recentUsers.length && <p className="text-sm text-ink-soft">No recent user accounts.</p>}
         </div>
       </div>
     </div>

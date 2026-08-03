@@ -32,7 +32,7 @@ export const schoolSettingsSchema = z.object({
 export const studentSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
-  password: z.string().min(6).optional(),
+  password: z.string().min(8),
   classId: z.string().uuid(),
   dob: z.coerce.date(),
   phone: z.string().optional(),
@@ -41,7 +41,7 @@ export const studentSchema = z.object({
 export const staffSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
-  password: z.string().min(6).optional(),
+  password: z.string().min(8),
   designation: z.string().min(2),
   phone: z.string().optional(),
 })

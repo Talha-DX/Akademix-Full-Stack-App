@@ -1,97 +1,155 @@
-import { useMemo, useState } from 'react'
-import { FileBarChart, PlusCircle, Search, Trash2 } from 'lucide-react'
-import Modal from '../../../components/common/Modal'
-import Input from '../../../components/forms/Input'
-import Select from '../../../components/forms/Select'
-import { createReport, deleteReport, getReports } from '../../../utils/adminModuleStore'
-
-const defaultForm = {
-  title: '',
-  type: 'Academics',
-  generatedAt: new Date().toISOString().slice(0, 10),
-  owner: '',
-}
+import { useEffect, useState } from 'react'
+import { FileBarChart, RefreshCw } from 'lucide-react'
+import { reportApi } from '../../../api/reportApi'
+import { useNotificationContext } from '../../../context/NotificationContext'
+import { getApiErrorMessage } from '../../../utils/adminPeople'
 
 export default function ReportGenerator() {
-  const [reports, setReports] = useState(getReports)
-  const [query, setQuery] = useState('')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [form, setForm] = useState(defaultForm)
-  const [submitting, setSubmitting] = useState(false)
+  const { notify } = useNotificationContext()
+  const [academic, setAcademic] = useState(null)
+  const [attendance, setAttendance] = useState(null)
+  const [financial, setFinancial] = useState(null)
+  const [student, setStudent] = useState(null)
+  const [loading, setLoading] = useState(false)
 
-  const filteredReports = useMemo(() => {
-    const term = query.trim().toLowerCase()
-    if (!term) return reports
-    return reports.filter((item) => [item.title, item.type, item.owner].join(' ').toLowerCase().includes(term))
-  }, [reports, query])
-
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
-  }
-
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    setSubmitting(true)
-    createReport(form)
-    setReports(getReports())
-    setModalOpen(false)
-    setForm(defaultForm)
-    setSubmitting(false)
-  }
-
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this report?')) {
-      deleteReport(id)
-      setReports(getReports())
+  const loadReports = async () => {
+    setLoading(true)
+    try {
+      const [acadRes, attRes, finRes, studRes] = await Promise.all([
+        reportApi.academic(),
+        reportApi.attendance(),
+        reportApi.financial(),
+        reportApi.student(),
+      ])
+      setAcademic(acadRes.data)
+      setAttendance(attRes.data)
+      setFinancial(finRes.data)
+      setStudent(studRes.data)
+    } catch (error) {
+      notify(getApiErrorMessage(error, 'Failed to fetch reports data.'), 'error')
+    } finally {
+      setLoading(false)
     }
   }
 
+  useEffect(() => {
+    loadReports()
+  }, [])
+
   return (
     <div className="space-y-6">
-      <div className="card p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="font-display text-xl font-semibold text-ink">Report center</p>
-            <p className="mt-1 text-sm text-ink-soft">Generate and manage school reports for academics, students, and finance.</p>
-          </div>
-          <button onClick={() => setModalOpen(true)} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"><span className="flex items-center gap-2"><PlusCircle size={16} /> Create report</span></button>
+      <div className="card p-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="font-display text-xl font-semibold text-ink">Report Center</p>
+          <p className="mt-1 text-sm text-ink-soft">Real-time aggregate analytics generated from your Postgres database.</p>
         </div>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-ink-soft"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search reports" className="w-full bg-transparent outline-none" /></div>
-          <div className="rounded-2xl border border-line bg-surface-tint px-3 py-2 text-sm text-ink-soft">{reports.length} reports</div>
-        </div>
-      </div>
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-surface-tint text-xs font-mono uppercase tracking-wide text-ink-soft"><tr><th className="px-5 py-3">Title</th><th className="px-5 py-3">Type</th><th className="px-5 py-3">Generated</th><th className="px-5 py-3">Owner</th><th className="px-5 py-3 text-right">Actions</th></tr></thead>
-            <tbody className="divide-y divide-line">
-              {filteredReports.map((item) => (
-                <tr key={item.id} className="bg-white/70">
-                  <td className="px-5 py-3.5 font-semibold text-ink">{item.title}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.type}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.generatedAt}</td>
-                  <td className="px-5 py-3.5 text-ink-soft">{item.owner}</td>
-                  <td className="px-5 py-3.5"><div className="flex justify-end"><button onClick={() => handleDelete(item.id)} className="rounded-lg border border-line p-2 text-coral-600 hover:bg-coral-50"><Trash2 size={16} /></button></div></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <button onClick={loadReports} disabled={loading} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 flex items-center gap-2">
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          {loading ? 'Refreshing…' : 'Refresh Metrics'}
+        </button>
       </div>
 
-      <Modal open={modalOpen} title="Create report" onClose={() => setModalOpen(false)}>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Report title" name="title" value={form.title} onChange={handleChange} required />
-            <Select label="Type" name="type" value={form.type} onChange={handleChange} options={['Academics', 'Finance', 'Student', 'Attendance'].map((item) => ({ value: item, label: item }))} />
-            <Input label="Generated date" name="generatedAt" type="date" value={form.generatedAt} onChange={handleChange} required />
-            <Input label="Owner" name="owner" value={form.owner} onChange={handleChange} required />
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="card p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-brand-50 p-3 text-brand-700">
+              <FileBarChart size={20} />
+            </div>
+            <div>
+              <p className="font-display text-lg font-semibold text-ink">Academic Overview</p>
+              <p className="text-sm text-ink-soft">Exams and Performance</p>
+            </div>
           </div>
-          <div className="flex justify-end gap-3 pt-2"><button type="button" onClick={() => setModalOpen(false)} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-surface-tint">Cancel</button><button type="submit" disabled={submitting} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">{submitting ? 'Saving…' : 'Create report'}</button></div>
-        </form>
-      </Modal>
+          <div className="mt-5 space-y-3">
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Total Exams Scheduled</span>
+              <span className="font-semibold text-ink">{academic?.totalExams ?? '—'}</span>
+            </div>
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Results Recorded</span>
+              <span className="font-semibold text-ink">{academic?.totalResultsRecorded ?? '—'}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-ink-soft">Average Marks %</span>
+              <span className="font-semibold text-ink">{academic?.averagePercentage ?? 0}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
+              <FileBarChart size={20} />
+            </div>
+            <div>
+              <p className="font-display text-lg font-semibold text-ink">Attendance Summary</p>
+              <p className="text-sm text-ink-soft">Presence and Rates</p>
+            </div>
+          </div>
+          <div className="mt-5 space-y-3">
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Total Records Marked</span>
+              <span className="font-semibold text-ink">{attendance?.totalMarked ?? '—'}</span>
+            </div>
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Present / Absent</span>
+              <span className="font-semibold text-ink">{attendance?.present ?? 0} / {attendance?.absent ?? 0}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-ink-soft">Overall Attendance Rate</span>
+              <span className="font-semibold text-ink">{attendance?.attendanceRatePercentage ?? 100}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-amber-50 p-3 text-amber-700">
+              <FileBarChart size={20} />
+            </div>
+            <div>
+              <p className="font-display text-lg font-semibold text-ink">Financial Ledger</p>
+              <p className="text-sm text-ink-soft">Billing & Collections</p>
+            </div>
+          </div>
+          <div className="mt-5 space-y-3">
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Total Billed</span>
+              <span className="font-semibold text-ink">${(financial?.totalBilled ?? 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Total Collected</span>
+              <span className="font-semibold text-brand-600">${(financial?.totalPaid ?? 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-ink-soft">Total Pending</span>
+              <span className="font-semibold text-coral-600">${(financial?.totalPending ?? 0).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-purple-50 p-3 text-purple-700">
+              <FileBarChart size={20} />
+            </div>
+            <div>
+              <p className="font-display text-lg font-semibold text-ink">Students & Enrolment</p>
+              <p className="text-sm text-ink-soft">Class Distribution</p>
+            </div>
+          </div>
+          <div className="mt-5 space-y-3">
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Total Enrolled Students</span>
+              <span className="font-semibold text-ink">{student?.totalStudents ?? '—'}</span>
+            </div>
+            <div className="flex justify-between border-b border-line pb-2 text-sm">
+              <span className="text-ink-soft">Total Active Classes</span>
+              <span className="font-semibold text-ink">{student?.totalClasses ?? '—'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

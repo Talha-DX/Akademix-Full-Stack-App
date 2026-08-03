@@ -29,7 +29,7 @@ export const create = asyncHandler(async (req, res) => {
       user: {
         create: {
           name, email, phone, role: 'TEACHER', schoolId: req.user.schoolId,
-          password: await hashPassword(password || 'changeme123'),
+          password: await hashPassword(password),
         },
       },
     },
