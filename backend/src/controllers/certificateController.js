@@ -1,6 +1,7 @@
 // Certificate controller — bonafide/transfer/character certs, ID cards.
 import { prisma } from '../models/index.js'
 import { asyncHandler } from '../utils/helpers.js'
+import { renderCertificate } from '../services/pdfService.js'
 
 export const list = asyncHandler(async (req, res) => {
   const { studentId } = req.query
@@ -27,4 +28,27 @@ export const create = asyncHandler(async (req, res) => {
 export const remove = asyncHandler(async (req, res) => {
   await prisma.certificate.delete({ where: { id: req.params.id } })
   res.status(204).send()
+})
+
+export const downloadPdf = asyncHandler(async (req, res) => {
+  const cert = await prisma.certificate.findFirst({
+    where: {
+      id: req.params.id,
+      student: {
+        class: { schoolId: req.user.schoolId },
+        ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}),
+      },
+    },
+    include: { student: { include: { user: true, class: true } } },
+  })
+  if (!cert) return res.status(404).json({ message: 'Certificate not found' })
+
+  const pdf = await renderCertificate({
+    certificateType: cert.type,
+    studentName: cert.student.user.name,
+    certificateBody: `Issued on ${cert.issuedDate.toLocaleDateString()}.`,
+  })
+  res.type('application/pdf')
+  res.attachment(`certificate-${cert.id}.pdf`)
+  res.send(pdf)
 })

@@ -1,11 +1,12 @@
 .
-├── all_code.txt
 ├── backend
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── prisma
 │   │   ├── migrations
-│   │   │   ├── 20260801074928_init
+│   │   │   ├── 20260802113236_talha
+│   │   │   │   └── migration.sql
+│   │   │   ├── 20260802120000_add_user_password_reset_fields
 │   │   │   │   └── migration.sql
 │   │   │   └── migration_lock.toml
 │   │   ├── schema.prisma
@@ -28,6 +29,7 @@
 │   │   │   ├── feeController.js
 │   │   │   ├── homeworkController.js
 │   │   │   ├── profileController.js
+│   │   │   ├── reportController.js
 │   │   │   ├── resultController.js
 │   │   │   ├── schoolController.js
 │   │   │   ├── staffController.js
@@ -37,6 +39,7 @@
 │   │   │   └── userController.js
 │   │   ├── middleware
 │   │   │   ├── auth.js
+│   │   │   ├── rateLimit.js
 │   │   │   ├── roleCheck.js
 │   │   │   ├── upload.js
 │   │   │   └── validation.js
@@ -55,6 +58,7 @@
 │   │   │   ├── feeRoutes.js
 │   │   │   ├── homeworkRoutes.js
 │   │   │   ├── profileRoutes.js
+│   │   │   ├── reportRoutes.js
 │   │   │   ├── resultRoutes.js
 │   │   │   ├── schoolRoutes.js
 │   │   │   ├── staffRoutes.js
@@ -68,6 +72,8 @@
 │   │   │   ├── fileService.js
 │   │   │   └── pdfService.js
 │   │   ├── templates
+│   │   │   ├── emails
+│   │   │   │   └── resetPassword.ejs
 │   │   │   └── pdf
 │   │   │       ├── certificate.html
 │   │   │       ├── feeReceipt.html
@@ -110,6 +116,8 @@
 │   │   │   ├── examApi.js
 │   │   │   ├── feeApi.js
 │   │   │   ├── homeworkApi.js
+│   │   │   ├── profileApi.js
+│   │   │   ├── reportApi.js
 │   │   │   ├── resultApi.js
 │   │   │   ├── schoolApi.js
 │   │   │   ├── staffApi.js
@@ -341,8 +349,6 @@
 │   │   │   ├── notificationService.js
 │   │   │   └── pdfService.js
 │   │   └── utils
-│   │       ├── adminCrudStore.js
-│   │       ├── adminModuleStore.js
 │   │       ├── adminPeople.js
 │   │       ├── constants.js
 │   │       ├── dateUtils.js
@@ -355,4 +361,4 @@
 ├── package.json
 └── README.md
 
-88 directories, 268 files
+90 directories, 272 files

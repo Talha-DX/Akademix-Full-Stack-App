@@ -13,6 +13,7 @@ router.put('/structures/:id', requireAuth, requireRole('ADMIN'), feeController.u
 router.delete('/structures/:id', requireAuth, requireRole('ADMIN'), feeController.removeStructure)
 
 router.get('/invoices', requireAuth, feeController.listInvoices)
+router.get('/invoices/:id/receipt', requireAuth, feeController.downloadReceipt)
 router.post('/invoices', requireAuth, requireRole('ADMIN'), validate(feeInvoiceSchema), feeController.createInvoice)
 router.put('/invoices/:id/pay', requireAuth, requireRole('ADMIN', 'STUDENT'), feeController.payInvoice)
 router.delete('/invoices/:id', requireAuth, requireRole('ADMIN'), feeController.removeInvoice)

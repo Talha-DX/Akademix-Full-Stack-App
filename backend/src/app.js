@@ -21,9 +21,14 @@ import announcementRoutes from './routes/announcementRoutes.js'
 import certificateRoutes from './routes/certificateRoutes.js'
 import dashboardRoutes from './routes/dashboardRoutes.js'
 import schoolRoutes from './routes/schoolRoutes.js'
+import reportRoutes from './routes/reportRoutes.js'
 
 const app = express()
-app.use(cors())
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : process.env.NODE_ENV !== 'production' }))
 app.use(express.json())
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 
@@ -46,6 +51,7 @@ app.use('/api/announcements', announcementRoutes)
 app.use('/api/certificates', certificateRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/school', schoolRoutes)
+app.use('/api/reports', reportRoutes)
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ message: 'Not found' }))

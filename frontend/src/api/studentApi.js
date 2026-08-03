@@ -5,6 +5,7 @@ import client from './axios'
 export const studentApi = {
   list: (params) => client.get('/students', { params }),
   getById: (id) => client.get(`/students/${id}`),
+  downloadIdCard: (id) => client.get(`/students/${id}/id-card`, { responseType: 'blob' }),
   create: (payload) => client.post('/students', payload),
   update: (id, payload) => client.put(`/students/${id}`, payload),
   remove: (id) => client.delete(`/students/${id}`),

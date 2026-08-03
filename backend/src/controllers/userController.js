@@ -29,6 +29,9 @@ export const getById = asyncHandler(async (req, res) => {
 
 export const create = asyncHandler(async (req, res) => {
   const { name, email, password, role, phone } = req.body
+  if (!password || password.length < 8) {
+    return res.status(400).json({ message: 'An initial password of at least 8 characters is required' })
+  }
   const user = await prisma.user.create({
     data: { name, email, phone, role, schoolId: req.user.schoolId, password: await hashPassword(password) },
     select: publicSelect,

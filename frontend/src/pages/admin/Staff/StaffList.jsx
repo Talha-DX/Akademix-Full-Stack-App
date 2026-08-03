@@ -96,7 +96,7 @@ export default function StaffList() {
           email: form.email,
           phone: form.phone || undefined,
           designation: composeDesignation(form.department, form.title),
-          password: form.password || undefined,
+          password: form.password,
         })
         notify('Employee created.', 'success')
       }
@@ -209,7 +209,7 @@ export default function StaffList() {
             <Input label="Phone" name="phone" value={form.phone} onChange={handleChange} />
             <Input label="Department" name="department" value={form.department} onChange={handleChange} required />
             <Input label="Designation title" name="title" value={form.title} onChange={handleChange} required />
-            {!editingId && <Input label="Initial password (optional)" name="password" value={form.password} onChange={handleChange} placeholder="Defaults to changeme123" />}
+            {!editingId && <Input label="Initial password" name="password" type="password" value={form.password} onChange={handleChange} required minLength={8} placeholder="At least 8 characters" />}
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-soft hover:bg-surface-tint">Cancel</button>
