@@ -35,7 +35,7 @@ export const removeStructure = asyncHandler(async (req, res) => {
 export const listInvoices = asyncHandler(async (req, res) => {
   const { studentId, status } = req.query
   const where = {
-    student: { class: { schoolId: req.user.schoolId } },
+    student: { class: { schoolId: req.user.schoolId }, ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}) },
     ...(studentId ? { studentId } : {}),
     ...(status ? { status } : {}),
   }
@@ -54,11 +54,21 @@ export const createInvoice = asyncHandler(async (req, res) => {
 
 // PUT /api/fees/invoices/:id/pay
 export const payInvoice = asyncHandler(async (req, res) => {
-  const invoice = await prisma.feeInvoice.update({
-    where: { id: req.params.id },
+  const invoice = await prisma.feeInvoice.findFirst({
+    where: {
+      id: req.params.id,
+      student: {
+        class: { schoolId: req.user.schoolId },
+        ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}),
+      },
+    },
+  })
+  if (!invoice) return res.status(404).json({ message: 'Invoice not found' })
+  const updated = await prisma.feeInvoice.update({
+    where: { id: invoice.id },
     data: { status: 'PAID', paidAt: new Date() },
   })
-  res.json(invoice)
+  res.json(updated)
 })
 
 export const removeInvoice = asyncHandler(async (req, res) => {

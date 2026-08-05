@@ -9,5 +9,6 @@ router.get('/academic', requireAuth, requireRole('ADMIN'), reportController.getA
 router.get('/attendance', requireAuth, requireRole('ADMIN'), reportController.getAttendanceReport)
 router.get('/financial', requireAuth, requireRole('ADMIN'), reportController.getFinancialReport)
 router.get('/student', requireAuth, requireRole('ADMIN'), reportController.getStudentReport)
+router.get('/:type/pdf', requireAuth, requireRole('ADMIN'), reportController.downloadReport)
 
 export default router

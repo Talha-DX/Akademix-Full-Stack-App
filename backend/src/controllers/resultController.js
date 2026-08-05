@@ -20,6 +20,7 @@ export const list = asyncHandler(async (req, res) => {
     ...(examId ? { examId } : {}),
     ...(studentId ? { studentId } : {}),
   }
+  if (req.user.role === 'STUDENT') where.student = { userId: req.user.id }
   const results = await prisma.examResult.findMany({ where, include: { subject: true, exam: true } })
   res.json(results)
 })
@@ -65,8 +66,10 @@ export const remove = asyncHandler(async (req, res) => {
 
 // GET /api/results/student/:studentId — report card style
 export const byStudent = asyncHandler(async (req, res) => {
+  const student = await prisma.student.findFirst({ where: { id: req.params.studentId, class: { schoolId: req.user.schoolId }, ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}) } })
+  if (!student) return res.status(404).json({ message: 'Student not found' })
   const results = await prisma.examResult.findMany({
-    where: { studentId: req.params.studentId },
+    where: { studentId: student.id },
     include: { subject: true, exam: true },
   })
   res.json(results)

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { DollarSign, CreditCard, TrendingUp, AlertCircle } from 'lucide-react'
 import { reportApi } from '../../../api/reportApi'
+import { downloadPdf } from '../../../utils/download'
 
 export default function FinancialReports() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
+  const download = async () => { setDownloading(true); try { downloadPdf(await reportApi.download('financial'), 'fee-report.pdf') } finally { setDownloading(false) } }
 
   useEffect(() => {
     reportApi.financial()
@@ -16,7 +19,7 @@ export default function FinancialReports() {
   return (
     <div className="space-y-6">
       <div className="card p-6">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3">
           <div className="rounded-2xl bg-amber-50 p-3 text-amber-700">
             <DollarSign size={22} />
           </div>
@@ -24,7 +27,7 @@ export default function FinancialReports() {
             <h1 className="font-display text-2xl font-bold text-ink">Financial Reports & Fee Ledger</h1>
             <p className="mt-1 text-sm text-ink-soft">Real-time revenue, collection rates, and pending fee balances.</p>
           </div>
-        </div>
+        </div><button onClick={download} disabled={downloading} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{downloading ? 'Preparing…' : 'Download PDF'}</button></div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-4">

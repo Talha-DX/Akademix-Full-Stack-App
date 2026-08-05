@@ -130,4 +130,5 @@ export const feePaySchema = z.object({
 export const certificateSchema = z.object({
   studentId: z.string().uuid(),
   type: z.string().min(1),
+  templateId: z.string().uuid().optional(),
 })

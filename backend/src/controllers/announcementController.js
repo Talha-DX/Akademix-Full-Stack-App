@@ -6,7 +6,7 @@ export const list = asyncHandler(async (req, res) => {
   const rows = await prisma.announcement.findMany({
     where: {
       schoolId: req.user.schoolId,
-      audience: { in: ['ALL', req.user.role] },
+      ...(req.user.role === 'ADMIN' ? {} : { audience: { in: ['ALL', req.user.role] } }),
     },
     orderBy: { createdAt: 'desc' },
   })

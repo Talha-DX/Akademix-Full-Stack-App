@@ -41,7 +41,9 @@ export const list = asyncHandler(async (req, res) => {
 // GET /api/attendance/student/:studentId — monthly report
 export const byStudent = asyncHandler(async (req, res) => {
   const { month, year } = req.query
-  const where = { studentId: req.params.studentId }
+  const student = await prisma.student.findFirst({ where: { id: req.params.studentId, class: { schoolId: req.user.schoolId }, ...(req.user.role === 'STUDENT' ? { userId: req.user.id } : {}) } })
+  if (!student) return res.status(404).json({ message: 'Student not found' })
+  const where = { studentId: student.id }
   if (month && year) {
     const start = new Date(Number(year), Number(month) - 1, 1)
     const end = new Date(Number(year), Number(month), 0, 23, 59, 59)

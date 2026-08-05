@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { GraduationCap, Award, BookOpen, Layers } from 'lucide-react'
 import { reportApi } from '../../../api/reportApi'
+import { downloadPdf } from '../../../utils/download'
 
 export default function AcademicReports() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
+  const download = async () => { setDownloading(true); try { downloadPdf(await reportApi.download('academic'), 'exam-report.pdf') } finally { setDownloading(false) } }
 
   useEffect(() => {
     reportApi.academic()
@@ -16,7 +19,7 @@ export default function AcademicReports() {
   return (
     <div className="space-y-6">
       <div className="card p-6">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3">
           <div className="rounded-2xl bg-brand-50 p-3 text-brand-700">
             <GraduationCap size={22} />
           </div>
@@ -24,7 +27,7 @@ export default function AcademicReports() {
             <h1 className="font-display text-2xl font-bold text-ink">Academic Performance Reports</h1>
             <p className="mt-1 text-sm text-ink-soft">Institute-wide examination statistics and class-by-class performance summary.</p>
           </div>
-        </div>
+        </div><button onClick={download} disabled={downloading} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{downloading ? 'Preparing…' : 'Download PDF'}</button></div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-3">

@@ -50,23 +50,23 @@ export const featureGroups = [
   },
   {
     title: 'Academics & Exams',
-    description: 'From question papers to report cards, without a spreadsheet in sight.',
-    items: ['Question Paper', 'Exams & Results', 'Class Tests', 'Certificates'],
+    description: 'Plan exams, publish results, and issue certificates without a spreadsheet.',
+    items: ['Exams & Results', 'Certificates'],
   },
   {
     title: 'Finance & Staff',
-    description: 'Fee structures, salary processing, and a ledger that actually reconciles.',
-    items: ['Fees', 'Salary', 'Accounts', 'Employees'],
+    description: 'Fee structures and employee records that stay in sync.',
+    items: ['Fees', 'Employees'],
   },
   {
     title: 'Communication',
-    description: 'Reach parents and staff on the channels they already check.',
-    items: ['SMS Services', 'WhatsApp', 'Messaging', 'Live Class'],
+    description: 'Keep parents and staff informed from one place.',
+    items: ['Messaging', 'Live Class'],
   },
   {
     title: 'Reporting & Sales',
-    description: 'See the whole institute at a glance, and run your front-office store.',
-    items: ['Reports', 'Online Store & POS', 'Institute Profile'],
+    description: 'See the whole institute at a glance.',
+    items: ['Reports', 'Institute Profile'],
   },
 ]
 
@@ -105,9 +105,7 @@ export const adminSidebar = [
     icon: 'Settings',
     children: [
       { label: 'Institute Profile', key: 'settings-profile' },
-      { label: 'Academic Year', key: 'settings-academic-year' },
       { label: 'Roles & Permissions', key: 'settings-roles' },
-      { label: 'Notification Settings', key: 'settings-notifications' },
     ],
   },
   {
@@ -117,7 +115,6 @@ export const adminSidebar = [
     children: [
       { label: 'Class List', key: 'classes-list' },
       { label: 'Add Class', key: 'classes-add' },
-      { label: 'Sections', key: 'classes-sections' },
     ],
   },
   {
@@ -126,7 +123,6 @@ export const adminSidebar = [
     icon: 'BookOpen',
     children: [
       { label: 'Subject List', key: 'subjects-list' },
-      { label: 'Assign Subject', key: 'subjects-assign' },
     ],
   },
   {
@@ -153,16 +149,6 @@ export const adminSidebar = [
     ],
   },
   {
-    label: 'Accounts',
-    key: 'accounts',
-    icon: 'Landmark',
-    children: [
-      { label: 'Income', key: 'accounts-income' },
-      { label: 'Expense', key: 'accounts-expense' },
-      { label: 'Bank Accounts', key: 'accounts-bank' },
-    ],
-  },
-  {
     label: 'Fees',
     key: 'fees',
     icon: 'Wallet',
@@ -170,16 +156,6 @@ export const adminSidebar = [
       { label: 'Fee Structure', key: 'fees-structure' },
       { label: 'Fee Collection', key: 'fees-collection' },
       { label: 'Fee Reports', key: 'fees-reports' },
-    ],
-  },
-  {
-    label: 'Salary',
-    key: 'salary',
-    icon: 'Banknote',
-    children: [
-      { label: 'Salary Structure', key: 'salary-structure' },
-      { label: 'Pay Salary', key: 'salary-pay' },
-      { label: 'Salary Reports', key: 'salary-reports' },
     ],
   },
   {
@@ -202,38 +178,8 @@ export const adminSidebar = [
   },
   { label: 'Homework', key: 'homework', icon: 'BookMarked' },
   { label: 'Behaviour & Skills', key: 'behaviour', icon: 'Sparkles' },
-  {
-    label: 'Online Store & POS',
-    key: 'store',
-    icon: 'ShoppingCart',
-    children: [
-      { label: 'Products', key: 'store-products' },
-      { label: 'Orders', key: 'store-orders' },
-      { label: 'Point of Sale', key: 'store-pos' },
-    ],
-  },
-  { label: 'WhatsApp', key: 'whatsapp', icon: 'MessageCircle', locked: true },
   { label: 'Messaging', key: 'messaging', icon: 'MessagesSquare' },
-  {
-    label: 'SMS Services',
-    key: 'sms',
-    icon: 'MessageSquareText',
-    children: [
-      { label: 'Send SMS', key: 'sms-send' },
-      { label: 'SMS Templates', key: 'sms-templates' },
-      { label: 'SMS Logs', key: 'sms-logs' },
-    ],
-  },
   { label: 'Live Class', key: 'live-class', icon: 'Video' },
-  {
-    label: 'Question Paper',
-    key: 'question-paper',
-    icon: 'FileText',
-    children: [
-      { label: 'Create Question Paper', key: 'question-paper-create' },
-      { label: 'Question Bank', key: 'question-paper-bank' },
-    ],
-  },
   {
     label: 'Exams',
     key: 'exams',
@@ -242,15 +188,6 @@ export const adminSidebar = [
       { label: 'Exam Schedule', key: 'exams-schedule' },
       { label: 'Marks Entry', key: 'exams-marks' },
       { label: 'Results', key: 'exams-results' },
-    ],
-  },
-  {
-    label: 'Class Tests',
-    key: 'class-tests',
-    icon: 'ClipboardCheck',
-    children: [
-      { label: 'Test Schedule', key: 'class-tests-schedule' },
-      { label: 'Test Marks', key: 'class-tests-marks' },
     ],
   },
   {
@@ -295,7 +232,6 @@ export const teacherSidebar = [
     icon: 'CalendarCheck',
     children: [
       { label: 'Mark Attendance', key: 'mark-attendance' },
-      { label: 'Class Attendance', key: 'class-attendance' },
     ],
   },
   { label: 'My Timetable', key: 'timetable', icon: 'CalendarDays' },

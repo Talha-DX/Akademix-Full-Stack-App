@@ -40,12 +40,3 @@ export const remove = asyncHandler(async (req, res) => {
   await prisma.subject.delete({ where: { id: subject.id } })
   res.status(204).send()
 })
-
-// PUT /api/subjects/:id/assign-teacher
-export const assignTeacher = asyncHandler(async (req, res) => {
-  const { teacherId } = req.body
-  const subject = await prisma.subject.findFirst({ where: { id: req.params.id, class: { schoolId: req.user.schoolId } } })
-  if (!subject) return res.status(404).json({ message: 'Subject not found' })
-  const updated = await prisma.subject.update({ where: { id: subject.id }, data: { teacherId }, include })
-  res.json(updated)
-})

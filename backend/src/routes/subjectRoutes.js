@@ -11,7 +11,6 @@ router.get('/', requireAuth, subjectController.list)
 router.get('/:id', requireAuth, subjectController.getById)
 router.post('/', requireAuth, requireRole('ADMIN'), validate(subjectSchema), subjectController.create)
 router.put('/:id', requireAuth, requireRole('ADMIN'), subjectController.update)
-router.put('/:id/assign-teacher', requireAuth, requireRole('ADMIN'), subjectController.assignTeacher)
 router.delete('/:id', requireAuth, requireRole('ADMIN'), subjectController.remove)
 
 export default router
