@@ -20,8 +20,13 @@ function NavIcon({ name }) {
   return Icon ? <Icon size={17} className="shrink-0" /> : null
 }
 
-/** Full nested module list (22 modules + submodules), used by AdminLayout. */
-export default function AdminSidebar({ active, onNavigate }) {
+/**
+ * Full nested module list (22 modules + submodules), used by AdminLayout.
+ * When `collapsed` is true (desktop minimize), items render icon-only;
+ * clicking a group with children asks the layout to re-expand first
+ * (via `onRequestExpand`) so its submenu is visible.
+ */
+export default function AdminSidebar({ active, onNavigate, collapsed = false, onRequestExpand }) {
   const [openGroups, setOpenGroups] = useState(() =>
     new Set(adminSidebar.filter((n) => n.children?.some((c) => c.key === active)).map((n) => n.key))
   )
@@ -35,46 +40,53 @@ export default function AdminSidebar({ active, onNavigate }) {
   }
 
   return (
-    <nav className="mt-2 flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-4">
+    <nav className="mt-2 flex flex-1 flex-col gap-0.5 overflow-y-auto overflow-x-hidden px-3 pb-4">
       {adminSidebar.map((item) => {
         const hasChildren = !!item.children?.length
-        const isGroupOpen = openGroups.has(item.key)
+        const isGroupOpen = !collapsed && openGroups.has(item.key)
         const isActiveParent = active === item.key || item.children?.some((c) => c.key === active)
 
         return (
           <div key={item.key}>
             <button
+              title={collapsed ? item.label : undefined}
               onClick={() => {
                 if (item.locked) return
+                if (collapsed && hasChildren) {
+                  onRequestExpand?.(item.key)
+                  return
+                }
                 hasChildren ? toggleGroup(item.key) : onNavigate(item.key)
               }}
               className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                collapsed ? 'justify-center' : ''
+              } ${
                 isActiveParent && !hasChildren
-                  ? 'bg-brand-50 text-brand-700'
+                  ? 'bg-white/15 text-white'
                   : isActiveParent
-                    ? 'text-ink'
-                    : 'text-ink-soft hover:bg-surface-tint hover:text-ink'
+                    ? 'text-white'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
               } ${item.locked ? 'cursor-not-allowed opacity-60' : ''}`}
               aria-expanded={hasChildren ? isGroupOpen : undefined}
             >
               <NavIcon name={item.icon} />
-              <span className="flex-1">{item.label}</span>
-              {item.locked && <Lock size={13} className="text-ink-soft" />}
-              {hasChildren && (
-                <ChevronDown size={15} className={`text-ink-soft transition-transform ${isGroupOpen ? 'rotate-180' : ''}`} />
+              {!collapsed && <span className="flex-1">{item.label}</span>}
+              {!collapsed && item.locked && <Lock size={13} className="text-white/50" />}
+              {!collapsed && hasChildren && (
+                <ChevronDown size={15} className={`text-white/50 transition-transform ${isGroupOpen ? 'rotate-180' : ''}`} />
               )}
             </button>
 
-            {hasChildren && isGroupOpen && (
-              <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-line pl-4">
+            {!collapsed && hasChildren && isGroupOpen && (
+              <div className="ml-4 mt-0.5 flex flex-col gap-0.5 border-l border-white/10 pl-4">
                 {item.children.map((child) => (
                   <button
                     key={child.key}
                     onClick={() => onNavigate(child.key)}
                     className={`rounded-lg px-3 py-2 text-left text-sm transition ${
                       active === child.key
-                        ? 'bg-brand-50 font-medium text-brand-700'
-                        : 'text-ink-soft hover:bg-surface-tint hover:text-ink'
+                        ? 'bg-white/15 font-medium text-white'
+                        : 'text-white/60 hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     {child.label}

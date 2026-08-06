@@ -1,0 +1,385 @@
+.
+├── backend
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── prisma
+│   │   ├── migrations
+│   │   │   ├── 20260802113236_talha
+│   │   │   │   └── migration.sql
+│   │   │   ├── 20260802120000_add_user_password_reset_fields
+│   │   │   │   └── migration.sql
+│   │   │   ├── 20260804110000_staff_attendance_live_classes_templates
+│   │   │   │   └── migration.sql
+│   │   │   └── migration_lock.toml
+│   │   ├── schema.prisma
+│   │   └── seed.js
+│   ├── README.md
+│   ├── src
+│   │   ├── app.js
+│   │   ├── config
+│   │   │   ├── cloudinary.js
+│   │   │   ├── database.js
+│   │   │   └── email.js
+│   │   ├── controllers
+│   │   │   ├── announcementController.js
+│   │   │   ├── attendanceController.js
+│   │   │   ├── authController.js
+│   │   │   ├── certificateController.js
+│   │   │   ├── classController.js
+│   │   │   ├── dashboardController.js
+│   │   │   ├── examController.js
+│   │   │   ├── feeController.js
+│   │   │   ├── homeworkController.js
+│   │   │   ├── liveClassController.js
+│   │   │   ├── profileController.js
+│   │   │   ├── reportController.js
+│   │   │   ├── resultController.js
+│   │   │   ├── schoolController.js
+│   │   │   ├── staffAttendanceController.js
+│   │   │   ├── staffController.js
+│   │   │   ├── studentController.js
+│   │   │   ├── subjectController.js
+│   │   │   ├── timetableController.js
+│   │   │   └── userController.js
+│   │   ├── middleware
+│   │   │   ├── auth.js
+│   │   │   ├── rateLimit.js
+│   │   │   ├── roleCheck.js
+│   │   │   ├── upload.js
+│   │   │   └── validation.js
+│   │   ├── models
+│   │   │   ├── index.js
+│   │   │   └── prisma
+│   │   │       └── schema.prisma
+│   │   ├── routes
+│   │   │   ├── announcementRoutes.js
+│   │   │   ├── attendanceRoutes.js
+│   │   │   ├── authRoutes.js
+│   │   │   ├── certificateRoutes.js
+│   │   │   ├── classRoutes.js
+│   │   │   ├── dashboardRoutes.js
+│   │   │   ├── examRoutes.js
+│   │   │   ├── feeRoutes.js
+│   │   │   ├── homeworkRoutes.js
+│   │   │   ├── liveClassRoutes.js
+│   │   │   ├── profileRoutes.js
+│   │   │   ├── reportRoutes.js
+│   │   │   ├── resultRoutes.js
+│   │   │   ├── schoolRoutes.js
+│   │   │   ├── staffAttendanceRoutes.js
+│   │   │   ├── staffRoutes.js
+│   │   │   ├── studentRoutes.js
+│   │   │   ├── subjectRoutes.js
+│   │   │   ├── timetableRoutes.js
+│   │   │   └── userRoutes.js
+│   │   ├── server.js
+│   │   ├── services
+│   │   │   ├── emailService.js
+│   │   │   ├── fileService.js
+│   │   │   └── pdfService.js
+│   │   ├── templates
+│   │   │   ├── emails
+│   │   │   │   └── resetPassword.ejs
+│   │   │   └── pdf
+│   │   │       ├── certificate.html
+│   │   │       ├── dataReport.html
+│   │   │       ├── feeReceipt.html
+│   │   │       ├── idCard.html
+│   │   │       └── reportCard.html
+│   │   └── utils
+│   │       ├── bcrypt.js
+│   │       ├── helpers.js
+│   │       ├── jwt.js
+│   │       └── validators.js
+│   └── uploads
+│       ├── documents
+│       ├── homework
+│       │   └── 1785911396917-280758833.png
+│       └── profiles
+├── docs
+│   ├── api
+│   │   └── api-documentation.md
+│   ├── deployment
+│   │   └── deployment-guide.md
+│   └── user-manual
+│       └── user-guide.md
+├── folder-structure.txt
+├── frontend
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   └── robots.txt
+│   ├── README.md
+│   ├── src
+│   │   ├── api
+│   │   │   ├── announcementApi.js
+│   │   │   ├── attendanceApi.js
+│   │   │   ├── authApi.js
+│   │   │   ├── axios.js
+│   │   │   ├── certificateApi.js
+│   │   │   ├── classApi.js
+│   │   │   ├── dashboardApi.js
+│   │   │   ├── examApi.js
+│   │   │   ├── feeApi.js
+│   │   │   ├── homeworkApi.js
+│   │   │   ├── liveClassApi.js
+│   │   │   ├── profileApi.js
+│   │   │   ├── reportApi.js
+│   │   │   ├── resultApi.js
+│   │   │   ├── schoolApi.js
+│   │   │   ├── staffApi.js
+│   │   │   ├── staffAttendanceApi.js
+│   │   │   ├── studentApi.js
+│   │   │   ├── subjectApi.js
+│   │   │   ├── timetableApi.js
+│   │   │   └── userApi.js
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   └── styles
+│   │   │       ├── index.css
+│   │   │       └── tailwind.css
+│   │   ├── components
+│   │   │   ├── admin
+│   │   │   │   └── ClassForm.jsx
+│   │   │   ├── auth
+│   │   │   │   └── AuthShowcase.jsx
+│   │   │   ├── cards
+│   │   │   │   ├── AnnouncementCard.jsx
+│   │   │   │   ├── EventCard.jsx
+│   │   │   │   ├── HomeworkCard.jsx
+│   │   │   │   └── StatCard.jsx
+│   │   │   ├── charts
+│   │   │   │   ├── BarChart.jsx
+│   │   │   │   ├── DashboardStats.jsx
+│   │   │   │   ├── LineChart.jsx
+│   │   │   │   ├── PieChart.jsx
+│   │   │   │   └── RadialProgress.jsx
+│   │   │   ├── common
+│   │   │   │   ├── AccountSettings.jsx
+│   │   │   │   ├── Breadcrumbs.jsx
+│   │   │   │   ├── ErrorBoundary.jsx
+│   │   │   │   ├── Layout
+│   │   │   │   │   ├── AdminLayout.jsx
+│   │   │   │   │   ├── PublicLayout.jsx
+│   │   │   │   │   ├── StudentLayout.jsx
+│   │   │   │   │   └── TeacherLayout.jsx
+│   │   │   │   ├── Loader.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   ├── ModulePlaceholder.jsx
+│   │   │   │   ├── Navbar
+│   │   │   │   │   ├── AdminNavbar.jsx
+│   │   │   │   │   ├── StudentNavbar.jsx
+│   │   │   │   │   └── TeacherNavbar.jsx
+│   │   │   │   ├── Pagination.jsx
+│   │   │   │   ├── ProfileMenu.jsx
+│   │   │   │   ├── Sidebar
+│   │   │   │   │   ├── AdminSidebar.jsx
+│   │   │   │   │   ├── StudentSidebar.jsx
+│   │   │   │   │   └── TeacherSidebar.jsx
+│   │   │   │   └── Toast.jsx
+│   │   │   ├── forms
+│   │   │   │   ├── DatePicker.jsx
+│   │   │   │   ├── FileUpload.jsx
+│   │   │   │   ├── FormWrapper.jsx
+│   │   │   │   ├── Input.jsx
+│   │   │   │   ├── Select.jsx
+│   │   │   │   ├── Textarea.jsx
+│   │   │   │   └── ValidationError.jsx
+│   │   │   └── tables
+│   │   │       ├── DataTable.jsx
+│   │   │       ├── TableActions.jsx
+│   │   │       ├── TableHeader.jsx
+│   │   │       └── TableRow.jsx
+│   │   ├── context
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── NotificationContext.jsx
+│   │   │   └── ThemeContext.jsx
+│   │   ├── data
+│   │   │   └── mockData.js
+│   │   ├── hooks
+│   │   │   ├── useAuth.js
+│   │   │   ├── useDebounce.js
+│   │   │   ├── useForm.js
+│   │   │   ├── usePermissions.js
+│   │   │   ├── useRole.js
+│   │   │   └── useTable.js
+│   │   ├── index.html
+│   │   ├── main.jsx
+│   │   ├── pages
+│   │   │   ├── admin
+│   │   │   │   ├── Announcements
+│   │   │   │   │   ├── AnnouncementDetails.jsx
+│   │   │   │   │   ├── AnnouncementList.jsx
+│   │   │   │   │   └── CreateAnnouncement.jsx
+│   │   │   │   ├── Attendance
+│   │   │   │   │   ├── AttendanceReport.jsx
+│   │   │   │   │   ├── AttendanceSettings.jsx
+│   │   │   │   │   ├── MonthlyAttendance.jsx
+│   │   │   │   │   └── StaffAttendance.jsx
+│   │   │   │   ├── Behaviour
+│   │   │   │   │   └── BehaviourSkills.jsx
+│   │   │   │   ├── Certificates
+│   │   │   │   │   ├── CertificateGenerator.jsx
+│   │   │   │   │   ├── CertificateList.jsx
+│   │   │   │   │   ├── CertificateTemplates.jsx
+│   │   │   │   │   ├── GenerateCertificate.jsx
+│   │   │   │   │   ├── IDCardGenerator.jsx
+│   │   │   │   │   └── TemplatesManager.jsx
+│   │   │   │   ├── Classes
+│   │   │   │   │   ├── AddClass.jsx
+│   │   │   │   │   ├── ClassDetails.jsx
+│   │   │   │   │   ├── ClassList.jsx
+│   │   │   │   │   └── EditClass.jsx
+│   │   │   │   ├── Dashboard
+│   │   │   │   │   └── AdminDashboard.jsx
+│   │   │   │   ├── Exams
+│   │   │   │   │   ├── CreateExam.jsx
+│   │   │   │   │   ├── EditExam.jsx
+│   │   │   │   │   ├── ExamDetails.jsx
+│   │   │   │   │   ├── ExamList.jsx
+│   │   │   │   │   └── ExamSchedule.jsx
+│   │   │   │   ├── Fees
+│   │   │   │   │   ├── CreateFeeStructure.jsx
+│   │   │   │   │   ├── FeeCollection.jsx
+│   │   │   │   │   ├── FeeManagement.jsx
+│   │   │   │   │   ├── FeeReport.jsx
+│   │   │   │   │   ├── FeeReports.jsx
+│   │   │   │   │   ├── FeeStructure.jsx
+│   │   │   │   │   ├── GenerateInvoice.jsx
+│   │   │   │   │   ├── InvoiceList.jsx
+│   │   │   │   │   └── PaymentTracking.jsx
+│   │   │   │   ├── Homework
+│   │   │   │   │   ├── CreateHomework.jsx
+│   │   │   │   │   ├── HomeworkList.jsx
+│   │   │   │   │   ├── HomeworkManager.jsx
+│   │   │   │   │   └── HomeworkSubmissions.jsx
+│   │   │   │   ├── Institute
+│   │   │   │   │   ├── InstituteProfile.jsx
+│   │   │   │   │   └── InstituteSettings.jsx
+│   │   │   │   ├── LiveClass
+│   │   │   │   │   └── LiveClassManager.jsx
+│   │   │   │   ├── Profile
+│   │   │   │   │   └── AdminProfile.jsx
+│   │   │   │   ├── Reports
+│   │   │   │   │   ├── AcademicReports.jsx
+│   │   │   │   │   ├── FinancialReports.jsx
+│   │   │   │   │   ├── ReportGenerator.jsx
+│   │   │   │   │   └── StudentReports.jsx
+│   │   │   │   ├── Results
+│   │   │   │   │   ├── BulkResultUpload.jsx
+│   │   │   │   │   ├── EnterMarks.jsx
+│   │   │   │   │   ├── MarksEntry.jsx
+│   │   │   │   │   ├── ResultAnalysis.jsx
+│   │   │   │   │   ├── ResultCard.jsx
+│   │   │   │   │   ├── ResultManagement.jsx
+│   │   │   │   │   └── ResultsList.jsx
+│   │   │   │   ├── Settings
+│   │   │   │   │   └── SystemSettings.jsx
+│   │   │   │   ├── Staff
+│   │   │   │   │   ├── AddStaff.jsx
+│   │   │   │   │   ├── EditStaff.jsx
+│   │   │   │   │   ├── StaffList.jsx
+│   │   │   │   │   └── StaffProfile.jsx
+│   │   │   │   ├── Students
+│   │   │   │   │   ├── AddStudent.jsx
+│   │   │   │   │   ├── EditStudent.jsx
+│   │   │   │   │   ├── StudentDetails.jsx
+│   │   │   │   │   ├── StudentList.jsx
+│   │   │   │   │   └── StudentProfile.jsx
+│   │   │   │   ├── Subjects
+│   │   │   │   │   ├── AddSubject.jsx
+│   │   │   │   │   └── SubjectList.jsx
+│   │   │   │   ├── Timetable
+│   │   │   │   │   ├── CreateTimetable.jsx
+│   │   │   │   │   ├── EditTimetable.jsx
+│   │   │   │   │   ├── TeacherTimetable.jsx
+│   │   │   │   │   └── TimetableManager.jsx
+│   │   │   │   └── Users
+│   │   │   │       ├── AddUser.jsx
+│   │   │   │       ├── EditUser.jsx
+│   │   │   │       └── UserManagement.jsx
+│   │   │   ├── auth
+│   │   │   │   ├── ForgotPassword.jsx
+│   │   │   │   ├── Login.jsx
+│   │   │   │   ├── Register.jsx
+│   │   │   │   ├── ResetPassword.jsx
+│   │   │   │   └── TwoFactorAuth.jsx
+│   │   │   ├── public
+│   │   │   │   ├── About.jsx
+│   │   │   │   ├── Contact.jsx
+│   │   │   │   ├── FAQ.jsx
+│   │   │   │   ├── Features.jsx
+│   │   │   │   ├── Home.jsx
+│   │   │   │   ├── NotFound.jsx
+│   │   │   │   ├── Pricing.jsx
+│   │   │   │   ├── Privacy.jsx
+│   │   │   │   ├── Terms.jsx
+│   │   │   │   └── Testimonials.jsx
+│   │   │   ├── student
+│   │   │   │   ├── Attendance
+│   │   │   │   │   └── MyAttendance.jsx
+│   │   │   │   ├── Certificates
+│   │   │   │   │   └── MyCertificates.jsx
+│   │   │   │   ├── Dashboard
+│   │   │   │   │   └── StudentDashboard.jsx
+│   │   │   │   ├── Exams
+│   │   │   │   │   ├── MyExams.jsx
+│   │   │   │   │   └── MyResults.jsx
+│   │   │   │   ├── Fees
+│   │   │   │   │   ├── FeePayment.jsx
+│   │   │   │   │   └── MyFees.jsx
+│   │   │   │   ├── Homework
+│   │   │   │   │   ├── MyHomework.jsx
+│   │   │   │   │   └── SubmitHomework.jsx
+│   │   │   │   ├── Profile
+│   │   │   │   │   └── StudentProfile.jsx
+│   │   │   │   └── Timetable
+│   │   │   │       └── MyTimetable.jsx
+│   │   │   └── teacher
+│   │   │       ├── Attendance
+│   │   │       │   ├── ClassAttendance.jsx
+│   │   │       │   └── MarkAttendance.jsx
+│   │   │       ├── Dashboard
+│   │   │       │   └── TeacherDashboard.jsx
+│   │   │       ├── Exams
+│   │   │       │   ├── EnterMarks.jsx
+│   │   │       │   └── MyExams.jsx
+│   │   │       ├── Homework
+│   │   │       │   ├── CheckSubmissions.jsx
+│   │   │       │   ├── CreateHomework.jsx
+│   │   │       │   └── MyHomework.jsx
+│   │   │       ├── Profile
+│   │   │       │   └── TeacherProfile.jsx
+│   │   │       ├── Students
+│   │   │       │   ├── MyStudents.jsx
+│   │   │       │   └── StudentProgress.jsx
+│   │   │       └── Timetable
+│   │   │           └── MyTimetable.jsx
+│   │   ├── redux
+│   │   │   ├── actions
+│   │   │   └── slices
+│   │   ├── routes
+│   │   │   ├── AppRoutes.jsx
+│   │   │   └── RoleRoute.jsx
+│   │   ├── services
+│   │   │   ├── authService.js
+│   │   │   ├── exportService.js
+│   │   │   └── pdfService.js
+│   │   └── utils
+│   │       ├── adminPeople.js
+│   │       ├── constants.js
+│   │       ├── dateUtils.js
+│   │       ├── download.js
+│   │       ├── fileUrl.js
+│   │       ├── formatters.js
+│   │       ├── helpers.js
+│   │       ├── permissions.js
+│   │       └── validators.js
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── package.json
+└── README.md
+
+94 directories, 289 files

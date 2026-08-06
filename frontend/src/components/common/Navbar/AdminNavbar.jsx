@@ -1,30 +1,27 @@
-import { Bell, Menu } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Menu } from 'lucide-react'
+import ProfileMenu from '../ProfileMenu'
 
-/** Top header bar for the Admin portal — menu toggle, page title, notifications, avatar. */
-export default function AdminNavbar({ title, onOpenMenu, userName, userMeta }) {
+/** Top header bar for the Admin portal — menu toggle, sidebar collapse, page title, account menu. */
+export default function AdminNavbar({ title, onOpenMenu, onToggleCollapse, collapsed, userName, userMeta, onNavigate }) {
   return (
     <header className="flex h-16 items-center justify-between border-b border-white/70 bg-surface-raised/80 px-4 shadow-sm shadow-brand-900/5 backdrop-blur-xl sm:px-8">
       <div className="flex items-center gap-3">
         <button className="lg:hidden" onClick={onOpenMenu} aria-label="Open menu">
           <Menu size={20} />
         </button>
+        <button
+          className="hidden text-ink-soft transition hover:text-ink lg:block"
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? 'Expand sidebar' : 'Minimize sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Minimize sidebar'}
+        >
+          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
         <p className="font-display text-sm font-semibold text-ink sm:text-base">{title}</p>
       </div>
 
-      <div className="flex items-center gap-4">
-        <button className="relative text-ink-soft hover:text-ink" aria-label="Notifications">
-          <Bell size={18} />
-          <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-coral-500" />
-        </button>
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-cyan-400 text-xs font-semibold text-white shadow-sm shadow-brand-500/30">
-            {userName?.[0] ?? 'A'}
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-medium leading-none text-ink">{userName}</p>
-            <p className="mt-0.5 text-xs leading-none text-ink-soft">{userMeta}</p>
-          </div>
-        </div>
+      <div className="flex items-center gap-4 z-50">
+        <ProfileMenu userName={userName} userMeta={userMeta} onNavigate={onNavigate} initialLetter="A" />
       </div>
     </header>
   )

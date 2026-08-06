@@ -1,17 +1,24 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   Award,
   BarChart3,
   CalendarCheck,
+  Check,
   CirclePlay,
   Clock3,
+  Crown,
+  GraduationCap,
+  Layers,
   Lightbulb,
   MessageSquareText,
   Quote,
+  Rocket,
   ShieldCheck,
   Sparkles,
   Target,
+  UserPlus,
   UsersRound,
   Wallet,
 } from 'lucide-react'
@@ -74,11 +81,83 @@ function DashboardPreview() {
   )
 }
 
-function Hero() {
+// A graduation cap that trails the cursor around the hero section, with a
+// light lerp-based smoothing so it glides rather than snapping to the
+// pointer, plus a little rotational "wobble" based on how fast it's
+// catching up. Desktop-only — there's no cursor to chase on touch.
+function CursorGraduationCap({ containerRef }) {
+  const capRef = useRef(null)
+  const pos = useRef({ x: 0, y: 0 })
+  const target = useRef(null)
+  const rafId = useRef(null)
+
+  useEffect(() => {
+    const node = containerRef.current
+    if (!node) return undefined
+
+    function handlePointerMove(e) {
+      const rect = node.getBoundingClientRect()
+      const next = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+      if (!target.current) pos.current = { ...next }
+      target.current = next
+    }
+
+    function handlePointerLeave() {
+      target.current = null
+    }
+
+    node.addEventListener('pointermove', handlePointerMove)
+    node.addEventListener('pointerleave', handlePointerLeave)
+
+    function tick() {
+      const cap = capRef.current
+      if (cap) {
+        if (target.current) {
+          const dx = target.current.x - pos.current.x
+          const dy = target.current.y - pos.current.y
+          pos.current.x += dx * 0.12
+          pos.current.y += dy * 0.12
+          const wobble = Math.max(-16, Math.min(16, dx * 0.5))
+          cap.style.transform = `translate(${pos.current.x - 22}px, ${pos.current.y - 26}px) rotate(${wobble}deg)`
+          cap.style.opacity = '1'
+        } else {
+          cap.style.opacity = '0'
+        }
+      }
+      rafId.current = requestAnimationFrame(tick)
+    }
+    rafId.current = requestAnimationFrame(tick)
+
+    return () => {
+      node.removeEventListener('pointermove', handlePointerMove)
+      node.removeEventListener('pointerleave', handlePointerLeave)
+      if (rafId.current) cancelAnimationFrame(rafId.current)
+    }
+  }, [containerRef])
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#221660] via-[#1c1240] to-[#120b2c] py-20 text-white sm:py-28">
+    <span
+      ref={capRef}
+      aria-hidden="true"
+      className="pointer-events-none absolute left-0 top-0 z-20 hidden h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white opacity-0 shadow-card backdrop-blur transition-opacity duration-300 lg:grid"
+      style={{ willChange: 'transform' }}
+    >
+      <GraduationCap size={22} />
+    </span>
+  )
+}
+
+function Hero() {
+  const heroRef = useRef(null)
+
+  return (
+    <section
+      ref={heroRef}
+      className="relative overflow-hidden bg-gradient-to-b from-[#221660] via-[#1c1240] to-[#120b2c] py-20 text-white sm:py-28"
+    >
       <div className="animated-orb pointer-events-none absolute -top-32 right-[-8%] h-[420px] w-[420px] rounded-full bg-brand-500/30 blur-3xl" />
       <div className="animated-orb pointer-events-none absolute bottom-[-18%] left-[-6%] h-[340px] w-[340px] rounded-full bg-coral-500/20 blur-3xl" />
+      <CursorGraduationCap containerRef={heroRef} />
 
       <div className="container-page relative grid gap-14 lg:grid-cols-2 lg:items-center">
         <div className="page-content">
@@ -143,6 +222,40 @@ function TrustBar() {
   )
 }
 
+const steps = [
+  [UserPlus, 'Create your school', 'Sign up and your admin workspace is ready instantly — no setup calls, no waiting.'],
+  [Layers, 'Add classes & people', 'Add classes, import students and staff in bulk, and set up your timetable.'],
+  [Rocket, 'Go live', 'Attendance, fees, exams and announcements start flowing through one dashboard, from day one.'],
+]
+
+function HowItWorks() {
+  return (
+    <section className="py-20">
+      <div className="container-page">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="eyebrow mx-auto">Get started in minutes</span>
+          <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">Up and running in three steps</h2>
+        </div>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-3">
+          {steps.map(([Icon, title, body], index) => (
+            <div key={title} className="card relative p-6">
+              <span className="absolute -top-3 left-6 grid h-7 w-7 place-items-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                {index + 1}
+              </span>
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                <Icon size={22} />
+              </span>
+              <h3 className="mt-4 font-display text-base font-semibold text-ink">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 const features = [
   [UsersRound, 'Admissions & Students', 'Manage enrollments, student records and class assignments from one place.'],
   [CalendarCheck, 'Attendance', 'Mark and track attendance for every class, with reports that update in real time.'],
@@ -154,7 +267,7 @@ const features = [
 
 function Features() {
   return (
-    <section id="features" className="py-20">
+    <section id="features" className="bg-surface-tint py-20">
       <div className="container-page">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow">Everything in one platform</span>
@@ -169,12 +282,55 @@ function Features() {
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map(([Icon, title, text]) => (
-            <div key={title} className="card p-6">
+            <div key={title} className="card bg-white p-6">
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
                 <Icon size={22} />
               </span>
               <h3 className="mt-4 font-display text-base font-semibold text-ink">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{text}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-10 text-center text-sm text-ink-soft">
+          <Link to="/features" className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:text-brand-700">
+            See every module in detail <ArrowRight size={14} />
+          </Link>
+        </p>
+      </div>
+    </section>
+  )
+}
+
+const portals = [
+  ['Admin', 'Full control over students, staff, classes, fees, results and settings.'],
+  ['Teacher', 'Attendance, marks entry, homework and timetable for their own classes.'],
+  ['Student', 'Homework, results, fees, timetable and certificates, always up to date.'],
+]
+
+function PortalsTeaser() {
+  return (
+    <section className="py-20">
+      <div className="container-page grid gap-14 lg:grid-cols-2 lg:items-center">
+        <div>
+          <span className="eyebrow">One system, three portals</span>
+          <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
+            A dashboard shaped for <span className="text-brand-600">every role</span>
+          </h2>
+          <p className="mt-4 max-w-md text-base text-ink-soft">
+            Admins, teachers and students each get a portal built around what they actually need to do — all
+            reading from the same live data, so nothing ever falls out of sync.
+          </p>
+          <Link to="/features" className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700">
+            Explore every module <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-3 lg:gap-4">
+          {portals.map(([title, body]) => (
+            <div key={title} className="card p-6 text-center">
+              <p className="font-display text-lg font-semibold text-brand-600">{title}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
             </div>
           ))}
         </div>
@@ -234,6 +390,50 @@ function WhyUs() {
   )
 }
 
+const plans = [
+  [Sparkles, 'Starter', '$0', ['Up to 150 students', 'Admissions & attendance', 'Admin, teacher & student portals']],
+  [Rocket, 'Growth', '$29', ['Unlimited students', 'Timetable & live classes', 'Certificates & ID cards'], true],
+  [Crown, 'Enterprise', 'Custom', ['Multiple campuses', 'Custom roles', 'Dedicated onboarding']],
+]
+
+function PricingTeaser() {
+  return (
+    <section className="py-20">
+      <div className="container-page">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="eyebrow mx-auto">Simple, transparent pricing</span>
+          <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">Free to start, room to grow</h2>
+        </div>
+
+        <div className="mt-12 grid gap-5 sm:grid-cols-3">
+          {plans.map(([Icon, name, price, points, highlighted]) => (
+            <div key={name} className={`card p-6 ${highlighted ? 'border-2 border-brand-500 shadow-card' : ''}`}>
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                <Icon size={20} />
+              </span>
+              <p className="mt-4 font-display text-base font-semibold text-ink">{name}</p>
+              <p className="mt-1 font-display text-2xl font-bold text-ink">{price}<span className="text-sm font-normal text-ink-soft">{price !== 'Custom' ? '/mo' : ''}</span></p>
+              <ul className="mt-4 space-y-2 border-t border-line pt-4">
+                {points.map((point) => (
+                  <li key={point} className="flex items-start gap-2 text-xs text-ink-soft">
+                    <Check size={14} className="mt-0.5 shrink-0 text-brand-500" /> {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-10 text-center text-sm text-ink-soft">
+          <Link to="/pricing" className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:text-brand-700">
+            Compare full plans <ArrowRight size={14} />
+          </Link>
+        </p>
+      </div>
+    </section>
+  )
+}
+
 const testimonials = [
   ['Dr. Ayesha Khan', 'School Director · Karachi, PK', 'Akademix has streamlined our school operations, from attendance tracking to exam reporting. It is reliable, intuitive, and has significantly improved our efficiency.'],
   ['Maheshwari Jain', 'School Head · London, UK', 'Our team adopted it in days. We now have one reliable view of every school activity, instead of five different tools.'],
@@ -246,7 +446,7 @@ function initials(name) {
 
 function Testimonials() {
   return (
-    <section className="py-20">
+    <section className="bg-surface-tint py-20">
       <div className="container-page">
         <div className="mx-auto max-w-xl text-center">
           <span className="eyebrow">Testimonials</span>
@@ -255,7 +455,7 @@ function Testimonials() {
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {testimonials.map(([name, role, quote]) => (
-            <figure key={name} className="card flex h-full flex-col p-7">
+            <figure key={name} className="card flex h-full flex-col bg-white p-7">
               <Quote size={26} className="text-brand-200" />
               <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-ink-soft">&ldquo;{quote}&rdquo;</blockquote>
               <figcaption className="mt-6 flex items-center gap-3 border-t border-line pt-5">
@@ -268,6 +468,43 @@ function Testimonials() {
                 </div>
               </figcaption>
             </figure>
+          ))}
+        </div>
+
+        <p className="mt-10 text-center text-sm text-ink-soft">
+          <Link to="/testimonials" className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:text-brand-700">
+            Read more reviews <ArrowRight size={14} />
+          </Link>
+        </p>
+      </div>
+    </section>
+  )
+}
+
+const faqs = [
+  ['Is the free plan really free?', 'Yes — Starter is free forever for a single school with up to 150 students, no credit card required.'],
+  ['Can I import existing student records?', 'Yes, bulk import is supported for students, staff and classes from a spreadsheet.'],
+  ['Is student data kept private between schools?', 'Yes — every school is a fully separate workspace, isolated from every other school on Akademix.'],
+]
+
+function FaqTeaser() {
+  return (
+    <section className="py-20">
+      <div className="container-page grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:items-start">
+        <div>
+          <span className="eyebrow">Questions</span>
+          <h2 className="mt-4 font-display text-3xl font-bold text-ink">Frequently asked questions</h2>
+          <p className="mt-3 text-sm text-ink-soft">
+            <Link to="/faq" className="font-semibold text-brand-600 hover:text-brand-700">See the full FAQ</Link> or{' '}
+            <Link to="/contact" className="font-semibold text-brand-600 hover:text-brand-700">talk to us directly</Link>.
+          </p>
+        </div>
+        <div className="grid gap-4">
+          {faqs.map(([q, a]) => (
+            <div key={q} className="card p-5">
+              <p className="font-display text-sm font-semibold text-ink">{q}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{a}</p>
+            </div>
           ))}
         </div>
       </div>
@@ -299,9 +536,13 @@ export default function Home() {
     <PublicLayout>
       <Hero />
       <TrustBar />
+      <HowItWorks />
       <Features />
+      <PortalsTeaser />
       <WhyUs />
+      <PricingTeaser />
       <Testimonials />
+      <FaqTeaser />
       <CTA />
     </PublicLayout>
   )

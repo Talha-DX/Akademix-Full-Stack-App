@@ -4,6 +4,9 @@ import { z } from 'zod'
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+  // The portal selection is part of the authentication request. Keeping it
+  // required prevents a client from omitting it to bypass the role check.
+  role: z.enum(['ADMIN', 'TEACHER', 'STUDENT']),
 })
 
 // Registration is admin-only: email + password + confirmPassword.
