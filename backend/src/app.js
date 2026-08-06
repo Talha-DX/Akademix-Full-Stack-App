@@ -22,6 +22,8 @@ import certificateRoutes from './routes/certificateRoutes.js'
 import dashboardRoutes from './routes/dashboardRoutes.js'
 import schoolRoutes from './routes/schoolRoutes.js'
 import reportRoutes from './routes/reportRoutes.js'
+import staffAttendanceRoutes from './routes/staffAttendanceRoutes.js'
+import liveClassRoutes from './routes/liveClassRoutes.js'
 
 const app = express()
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
@@ -42,6 +44,7 @@ app.use('/api/staff', staffRoutes)
 app.use('/api/classes', classRoutes)
 app.use('/api/subjects', subjectRoutes)
 app.use('/api/attendance', attendanceRoutes)
+app.use('/api/staff-attendance', staffAttendanceRoutes)
 app.use('/api/timetable', timetableRoutes)
 app.use('/api/homework', homeworkRoutes)
 app.use('/api/exams', examRoutes)
@@ -52,6 +55,7 @@ app.use('/api/certificates', certificateRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/school', schoolRoutes)
 app.use('/api/reports', reportRoutes)
+app.use('/api/live-classes', liveClassRoutes)
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ message: 'Not found' }))

@@ -11,7 +11,10 @@ export const list = asyncHandler(async (req, res) => {
     ...(classId ? { classId } : {}),
     ...(subjectId ? { subjectId } : {}),
   }
-  const rows = await prisma.homework.findMany({ where, include, orderBy: { dueDate: 'desc' } })
+  const scopedInclude = req.user.role === 'STUDENT'
+    ? { ...include, submissions: { where: { student: { userId: req.user.id } } } }
+    : include
+  const rows = await prisma.homework.findMany({ where, include: scopedInclude, orderBy: { dueDate: 'desc' } })
   res.json(rows)
 })
 

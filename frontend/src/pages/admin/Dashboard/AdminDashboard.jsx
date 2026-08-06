@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import AdminLayout from '../../../components/common/Layout/AdminLayout'
 import ModulePlaceholder from '../../../components/common/ModulePlaceholder'
 import { adminSidebar, flattenNav } from '../../../data/mockData'
@@ -20,25 +21,26 @@ import StaffProfile from '../Staff/StaffProfile'
 import EditStaff from '../Staff/EditStaff'
 import ClassList from '../Classes/ClassList'
 import AddClass from '../Classes/AddClass'
-import SectionManagement from '../Classes/SectionManagement'
 import SubjectList from '../Subjects/SubjectList'
-import AddSubject from '../Subjects/AddSubject'
 import AttendanceReport from '../Attendance/AttendanceReport'
+import StaffAttendance from '../Attendance/StaffAttendance'
 import TimetableManager from '../Timetable/TimetableManager'
 import TeacherTimetable from '../Timetable/TeacherTimetable'
-import HomeworkList from '../Homework/HomeworkList'
+import HomeworkManager from '../Homework/HomeworkManager'
 import ExamSchedule from '../Exams/ExamSchedule'
-import ResultManagement from '../Results/ResultManagement'
+import MarksEntry from '../Results/MarksEntry'
+import ResultsList from '../Results/ResultsList'
 import FeeStructure from '../Fees/FeeStructure'
-import FeeManagement from '../Fees/FeeManagement'
-import FeeReports from '../Fees/FeeReports'
+import FeeCollection from '../Fees/FeeCollection'
+import FeeReport from '../Fees/FeeReport'
 import AnnouncementList from '../Announcements/AnnouncementList'
-import CertificateTemplates from '../Certificates/CertificateTemplates'
-import GenerateCertificate from '../Certificates/GenerateCertificate'
+import TemplatesManager from '../Certificates/TemplatesManager'
+import CertificateGenerator from '../Certificates/CertificateGenerator'
 import IDCardGenerator from '../Certificates/IDCardGenerator'
-import ReportGenerator from '../Reports/ReportGenerator'
-import AcademicSettings from '../Settings/AcademicSettings'
-import NotificationSettings from '../Settings/NotificationSettings'
+import FinancialReports from '../Reports/FinancialReports'
+import AcademicReports from '../Reports/AcademicReports'
+import LiveClassManager from '../LiveClass/LiveClassManager'
+import BehaviourSkills from '../Behaviour/BehaviourSkills'
 
 function Overview() {
   const [stats, setStats] = useState(null)
@@ -76,16 +78,12 @@ const sections = {
   overview: <Overview />,
 
   'settings-profile': <InstituteProfile />,
-  'settings-academic-year': <AcademicSettings />,
   'settings-roles': <UserManagement />,
-  'settings-notifications': <NotificationSettings />,
 
   'classes-list': <ClassList />,
   'classes-add': <AddClass />,
-  'classes-sections': <SectionManagement />,
 
   'subjects-list': <SubjectList />,
-  'subjects-assign': <AddSubject />,
 
   'students-list': <StudentList />,
   'students-add': <AddStudent />,
@@ -98,66 +96,50 @@ const sections = {
   'employees-departments': <StaffProfile />,
   'employees-designations': <EditStaff />,
 
-  'accounts-income': <FeeReports />,
-  'accounts-expense': <FeeReports />,
-  'accounts-bank': <FeeManagement />,
-
   'fees-structure': <FeeStructure />,
-  'fees-collection': <FeeManagement />,
-  'fees-reports': <FeeReports />,
-
-  'salary-structure': <ModulePlaceholder title="Salary Structure" description="Define pay grades and salary components. This module is wired into the navigation and ready for its data screens." />,
-  'salary-pay': <FeeManagement />,
-  'salary-reports': <FeeReports />,
+  'fees-collection': <FeeCollection />,
+  'fees-reports': <FeeReport />,
 
   'attendance-students': <AttendanceReport />,
-  'attendance-staff': <AttendanceReport />,
+  'attendance-staff': <StaffAttendance />,
 
   'timetable-class': <TimetableManager />,
   'timetable-teacher': <TeacherTimetable />,
 
-  homework: <HomeworkList />,
-  behaviour: <ReportGenerator />,
+  homework: <HomeworkManager />,
+  behaviour: <BehaviourSkills />,
 
-  'store-products': <ModulePlaceholder title="Products" description="Manage store products for your front-office point of sale. This module is wired into the navigation and ready for its data screens." />,
-  'store-orders': <ReportGenerator />,
-  'store-pos': <FeeManagement />,
-
-  whatsapp: <NotificationSettings />,
   messaging: <AnnouncementList />,
 
-  'sms-send': <AnnouncementList />,
-  'sms-templates': <AnnouncementList />,
-  'sms-logs': <ReportGenerator />,
-
-  'live-class': <TimetableManager />,
-
-  'question-paper-create': <ExamSchedule />,
-  'question-paper-bank': <ExamSchedule />,
+  'live-class': <LiveClassManager />,
 
   'exams-schedule': <ExamSchedule />,
-  'exams-marks': <ResultManagement />,
-  'exams-results': <ResultManagement />,
-
-  'class-tests-schedule': <ExamSchedule />,
-  'class-tests-marks': <ResultManagement />,
+  'exams-marks': <MarksEntry />,
+  'exams-results': <ResultsList />,
 
   'reports-attendance': <AttendanceReport />,
-  'reports-fee': <FeeReports />,
-  'reports-exam': <ReportGenerator />,
+  'reports-fee': <FinancialReports />,
+  'reports-exam': <AcademicReports />,
 
-  'certificates-templates': <CertificateTemplates />,
-  'certificates-generate': <GenerateCertificate />,
+  'certificates-templates': <TemplatesManager />,
+  'certificates-generate': <CertificateGenerator />,
 }
 
 export default function AdminDashboard() {
-  const [active, setActive] = useState('overview')
+  const { section } = useParams()
+  const navigate = useNavigate()
+  const [active, setActive] = useState(section || 'overview')
   const { user } = useAuth()
+  useEffect(() => { setActive(section || 'overview') }, [section])
+  const handleNavigate = (nextSection) => {
+    setActive(nextSection)
+    navigate(nextSection === 'overview' ? '/admin' : `/admin/${nextSection}`)
+  }
 
   return (
     <AdminLayout
       active={active}
-      onNavigate={setActive}
+      onNavigate={handleNavigate}
       userName={user?.name ?? ''}
       userMeta="School Administrator"
     >

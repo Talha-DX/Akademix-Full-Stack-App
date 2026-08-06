@@ -8,6 +8,8 @@ import { classApi } from '../../../api/classApi'
 import { studentApi } from '../../../api/studentApi'
 import { useNotificationContext } from '../../../context/NotificationContext'
 import { getApiErrorMessage } from '../../../utils/adminPeople'
+import { reportApi } from '../../../api/reportApi'
+import { downloadPdf } from '../../../utils/download'
 
 export default function AttendanceReport() {
   const { notify } = useNotificationContext()
@@ -25,6 +27,8 @@ export default function AttendanceReport() {
     status: 'PRESENT',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const download = async () => { setDownloading(true); try { downloadPdf(await reportApi.download('attendance'), 'attendance-report.pdf') } finally { setDownloading(false) } }
 
   const loadData = async () => {
     try {
@@ -87,9 +91,7 @@ export default function AttendanceReport() {
             <p className="font-display text-xl font-semibold text-ink">Attendance Management</p>
             <p className="mt-1 text-sm text-ink-soft">View and mark real daily attendance connected directly to PostgreSQL.</p>
           </div>
-          <button onClick={() => setModalOpen(true)} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
-            <span className="flex items-center gap-2"><PlusCircle size={16} /> Mark Attendance</span>
-          </button>
+          <div className="flex gap-2"><button onClick={download} disabled={downloading} className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink hover:bg-surface-tint disabled:opacity-60">{downloading ? 'Preparing…' : 'Download PDF'}</button><button onClick={() => setModalOpen(true)} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"><span className="flex items-center gap-2"><PlusCircle size={16} /> Mark Attendance</span></button></div>
         </div>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-3">

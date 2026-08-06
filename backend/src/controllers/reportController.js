@@ -1,5 +1,27 @@
 import { prisma } from '../models/index.js'
 import { asyncHandler } from '../utils/helpers.js'
+import { renderDataReport } from '../services/pdfService.js'
+
+export const downloadReport = asyncHandler(async (req, res) => {
+  const schoolId = req.user.schoolId
+  const type = req.params.type
+  let title; let headers; let rows
+  if (type === 'financial') {
+    const invoices = await prisma.feeInvoice.findMany({ where: { student: { class: { schoolId } } }, include: { student: { include: { user: true, class: true } }, feeStructure: true }, orderBy: { dueDate: 'asc' } })
+    title = 'Fee Report'; headers = ['Student', 'Class', 'Category', 'Term', 'Amount', 'Due date', 'Status']
+    rows = invoices.map((item) => [item.student.user.name, `${item.student.class.name} ${item.student.class.section}`, item.feeStructure?.category || 'Fee', item.term, Number(item.amount).toFixed(2), item.dueDate.toLocaleDateString(), item.status])
+  } else if (type === 'academic') {
+    const results = await prisma.examResult.findMany({ where: { exam: { class: { schoolId } } }, include: { student: { include: { user: true, class: true } }, subject: true, exam: true }, orderBy: { exam: { startDate: 'desc' } } })
+    title = 'Exam Report'; headers = ['Student', 'Class', 'Exam', 'Subject', 'Marks', 'Grade']
+    rows = results.map((item) => [item.student.user.name, `${item.student.class.name} ${item.student.class.section}`, item.exam.name, item.subject.name, `${item.marks}/${item.maxMarks}`, item.grade || '—'])
+  } else if (type === 'attendance') {
+    const records = await prisma.attendance.findMany({ where: { student: { class: { schoolId } } }, include: { student: { include: { user: true, class: true } } }, orderBy: { date: 'desc' } })
+    title = 'Attendance Report'; headers = ['Date', 'Student', 'Class', 'Status']
+    rows = records.map((item) => [item.date.toLocaleDateString(), item.student.user.name, `${item.student.class.name} ${item.student.class.section}`, item.status])
+  } else return res.status(404).json({ message: 'Unknown report type' })
+  const pdf = await renderDataReport({ title, headers, rows, generatedAt: new Date().toLocaleString() })
+  res.type('application/pdf').attachment(`${type}-report.pdf`).send(pdf)
+})
 
 export const getAcademicReport = asyncHandler(async (req, res) => {
   const schoolId = req.user.schoolId

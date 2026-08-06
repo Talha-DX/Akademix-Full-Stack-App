@@ -18,8 +18,7 @@ import RoleRoute from './RoleRoute'
 
 /**
  * Each role dashboard owns its own internal module switching (see its
- * Dashboard/*.jsx), so it only needs a single route per role here, plus a
- * /:section param so deep links / refreshes land on the right module.
+ * Dashboard/*.jsx), with an optional section parameter for deep links.
  */
 export default function AppRoutes() {
   return (
@@ -34,9 +33,9 @@ export default function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/two-factor" element={<TwoFactorAuth />} />
 
-      <Route path="/admin/*" element={<RoleRoute roles={['ADMIN']}><AdminDashboard /></RoleRoute>} />
-      <Route path="/teacher/*" element={<RoleRoute roles={['TEACHER']}><TeacherDashboard /></RoleRoute>} />
-      <Route path="/student/*" element={<RoleRoute roles={['STUDENT']}><StudentDashboard /></RoleRoute>} />
+      <Route path="/admin/:section?" element={<RoleRoute roles={['ADMIN']}><AdminDashboard /></RoleRoute>} />
+      <Route path="/teacher/:section?" element={<RoleRoute roles={['TEACHER']}><TeacherDashboard /></RoleRoute>} />
+      <Route path="/student/:section?" element={<RoleRoute roles={['STUDENT']}><StudentDashboard /></RoleRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

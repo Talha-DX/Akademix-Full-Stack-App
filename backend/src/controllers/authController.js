@@ -68,7 +68,10 @@ export const logout = asyncHandler(async (req, res) => {
 export const me = asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    include: { student: true, staff: true },
+    include: {
+      student: { include: { class: true } },
+      staff: { include: { subjects: { include: { class: true } } } },
+    },
   })
   if (!user) return res.status(404).json({ message: 'User not found' })
   res.json(toPublicUser(user))

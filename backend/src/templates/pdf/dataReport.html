@@ -1,0 +1,5 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;color:#172033;padding:28px}h1{margin:0 0 5px;color:#1f5a4d}p{color:#617080;margin:0 0 22px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #d9e1e7;padding:8px;text-align:left}th{background:#edf6f3}</style></head><body>
+<h1><%= title %></h1><p>Generated <%= generatedAt %></p>
+<table><thead><tr><% headers.forEach((header) => { %><th><%= header %></th><% }) %></tr></thead><tbody><% rows.forEach((row) => { %><tr><% row.forEach((cell) => { %><td><%= cell %></td><% }) %></tr><% }) %></tbody></table>
+</body></html>

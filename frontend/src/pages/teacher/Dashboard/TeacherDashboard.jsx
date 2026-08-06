@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { CalendarClock, ClipboardList, Users2, CheckCircle2 } from 'lucide-react'
 import TeacherLayout from '../../../components/common/Layout/TeacherLayout'
 import DashboardStats from '../../../components/charts/DashboardStats'
 import { dashboardApi } from '../../../api/dashboardApi'
 import { useAuth } from '../../../hooks/useAuth'
+import { announcementApi } from '../../../api/announcementApi'
 
 import MarkAttendance from '../Attendance/MarkAttendance'
-import ClassAttendance from '../Attendance/ClassAttendance'
 import MyTimetable from '../Timetable/MyTimetable'
 import CreateHomework from '../Homework/CreateHomework'
 import MyHomework from '../Homework/MyHomework'
@@ -20,7 +21,8 @@ import TeacherProfile from '../Profile/TeacherProfile'
 function Overview() {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
-  useEffect(() => { dashboardApi.stats().then(({ data: response }) => setData(response)).catch(() => setError('Dashboard data could not be loaded.')) }, [])
+  const [announcements, setAnnouncements] = useState([])
+  useEffect(() => { Promise.all([dashboardApi.stats(), announcementApi.list()]).then(([{ data: response }, notices]) => { setData(response); setAnnouncements(notices.data || []) }).catch(() => setError('Dashboard data could not be loaded.')) }, [])
   if (error) return <div className="card p-6 text-sm text-coral-600">{error}</div>
   if (!data) return <div className="card p-6 text-sm text-ink-soft">Loading dashboard…</div>
   return (
@@ -52,6 +54,7 @@ function Overview() {
           </div>
         </div>
       </div>
+      <div className="card p-6"><p className="font-display text-base font-semibold text-ink">Announcements</p><div className="mt-4 space-y-3">{announcements.length ? announcements.map((notice) => <div key={notice.id} className="rounded-lg bg-surface-tint px-3 py-2.5"><p className="text-sm font-medium text-ink">{notice.title}</p><p className="mt-1 text-sm text-ink-soft">{notice.body}</p></div>) : <p className="text-sm text-ink-soft">No announcements for you.</p>}</div></div>
     </div>
   )
 }
@@ -59,7 +62,6 @@ function Overview() {
 const sections = {
   overview: <Overview />,
   'mark-attendance': <MarkAttendance />,
-  'class-attendance': <ClassAttendance />,
   timetable: <MyTimetable />,
   'create-homework': <CreateHomework />,
   homework: <MyHomework />,
@@ -72,13 +74,20 @@ const sections = {
 }
 
 export default function TeacherDashboard() {
-  const [active, setActive] = useState('overview')
+  const { section } = useParams()
+  const navigate = useNavigate()
+  const [active, setActive] = useState(section || 'overview')
   const { user } = useAuth()
+  useEffect(() => { setActive(section || 'overview') }, [section])
+  const handleNavigate = (nextSection) => {
+    setActive(nextSection)
+    navigate(nextSection === 'overview' ? '/teacher' : `/teacher/${nextSection}`)
+  }
 
   return (
     <TeacherLayout
       active={active}
-      onNavigate={setActive}
+      onNavigate={handleNavigate}
       userName={user?.name ?? ''}
       userMeta={user?.staff?.designation ?? 'Teacher'}
     >

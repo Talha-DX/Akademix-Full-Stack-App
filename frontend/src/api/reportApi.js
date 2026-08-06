@@ -5,4 +5,5 @@ export const reportApi = {
   attendance: () => client.get('/reports/attendance'),
   financial: () => client.get('/reports/financial'),
   student: () => client.get('/reports/student'),
+  download: (type) => client.get(`/reports/${type}/pdf`, { responseType: 'blob' }),
 }

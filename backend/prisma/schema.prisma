@@ -43,6 +43,8 @@ model School {
   users         User[]
   classes       Class[]
   announcements Announcement[]
+  liveClasses    LiveClass[]
+  certificateTemplates CertificateTemplate[]
   createdAt     DateTime       @default(now())
 }
 
@@ -91,6 +93,20 @@ model Staff {
   designation String
   subjects    Subject[]
   timetables  Timetable[]
+  attendances StaffAttendance[]
+  liveClasses LiveClass[]
+}
+
+model StaffAttendance {
+  id        String           @id @default(uuid())
+  staffId   String
+  staff     Staff            @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  date      DateTime         @db.Date
+  status    AttendanceStatus
+  markedBy  String?
+  createdAt DateTime         @default(now())
+
+  @@unique([staffId, date])
 }
 
 model Class {
@@ -105,6 +121,7 @@ model Class {
   homeworks     Homework[]
   exams         Exam[]
   feeStructures FeeStructure[]
+  liveClasses   LiveClass[]
 
   @@unique([name, section, schoolId])
 }
@@ -119,6 +136,7 @@ model Subject {
   timetables  Timetable[]
   homeworks   Homework[]
   examResults ExamResult[]
+  liveClasses LiveClass[]
 
   @@index([classId])
 }
@@ -240,5 +258,35 @@ model Certificate {
   studentId  String
   student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   type       String
+  body       String?
   issuedDate DateTime @default(now())
+}
+
+model CertificateTemplate {
+  id        String   @id @default(uuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name      String
+  type      String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@unique([schoolId, name])
+}
+
+model LiveClass {
+  id          String   @id @default(uuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId   String?
+  subject     Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  teacherId   String?
+  teacher     Staff?   @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  title       String
+  meetingUrl  String
+  scheduledAt DateTime
+  duration    Int      @default(60)
+  createdAt   DateTime @default(now())
 }
