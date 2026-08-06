@@ -17,6 +17,7 @@ import EnterMarks from '../Exams/EnterMarks'
 import MyStudents from '../Students/MyStudents'
 import StudentProgress from '../Students/StudentProgress'
 import TeacherProfile from '../Profile/TeacherProfile'
+import AccountSettings from '../../../components/common/AccountSettings'
 
 function Overview() {
   const [data, setData] = useState(null)
@@ -71,6 +72,7 @@ const sections = {
   'my-students': <MyStudents />,
   'student-progress': <StudentProgress />,
   profile: <TeacherProfile />,
+  'account-settings': <AccountSettings />,
 }
 
 export default function TeacherDashboard() {

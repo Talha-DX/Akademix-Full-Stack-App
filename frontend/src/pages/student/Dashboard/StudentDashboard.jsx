@@ -20,6 +20,7 @@ import MyFees from '../Fees/MyFees'
 import FeePayment from '../Fees/FeePayment'
 import MyCertificates from '../Certificates/MyCertificates'
 import StudentProfile from '../Profile/StudentProfile'
+import AccountSettings from '../../../components/common/AccountSettings'
 
 function Overview() {
   const { user } = useAuth()
@@ -107,6 +108,7 @@ const sections = {
   'fee-payment': <FeePayment />,
   certificates: <MyCertificates />,
   profile: <StudentProfile />,
+  'account-settings': <AccountSettings />,
 }
 
 export default function StudentDashboard() {

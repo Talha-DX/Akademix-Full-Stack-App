@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { authApi } from '../api/authApi'
 import { authService } from '../services/authService'
+import { getStoredToken } from '../api/axios'
 
 const AuthContext = createContext(null)
 
@@ -9,7 +10,7 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!localStorage.getItem('akademix_token')) {
+    if (!getStoredToken()) {
       setIsLoading(false)
       return
     }
@@ -19,8 +20,12 @@ export function AuthProvider({ children }) {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const login = async (credentials) => {
-    await authService.login(credentials)
+  // `credentials` is { email, password, role } — role is which tab (Admin /
+  // Teacher / Student) the person picked on the login screen, cross-checked
+  // server-side against the account's real role. `remember` controls
+  // whether the session survives closing the browser.
+  const login = async (credentials, remember = true) => {
+    await authService.login(credentials, remember)
     const { data: nextUser } = await authApi.me()
     setUser(nextUser)
     return nextUser

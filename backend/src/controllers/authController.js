@@ -11,6 +11,8 @@ function toPublicUser(user) {
   return rest
 }
 
+const ROLE_LABEL = { ADMIN: 'Admin', TEACHER: 'Teacher', STUDENT: 'Student' }
+
 // POST /api/auth/register
 export const register = asyncHandler(async (req, res) => {
   const { email, password } = req.body
@@ -47,13 +49,24 @@ export const register = asyncHandler(async (req, res) => {
 
 // POST /api/auth/login
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body
+  const { email, password, role } = req.body
 
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user || !user.isActive) return res.status(401).json({ message: 'Invalid credentials' })
 
   const valid = await comparePassword(password, user.password)
   if (!valid) return res.status(401).json({ message: 'Invalid credentials' })
+
+  // The login form lets people pick Admin / Teacher / Student before signing
+  // in. If they picked a tab that doesn't match this account, reject it here
+  // rather than silently logging them into a portal they didn't choose —
+  // this is what makes the tabs a real, working control and not just UI.
+  if (role !== user.role) {
+    return res.status(403).json({
+      message: `This account is registered as ${ROLE_LABEL[user.role]}. Please choose "${ROLE_LABEL[user.role]}" and sign in again.`,
+      actualRole: user.role,
+    })
+  }
 
   const token = signToken({ id: user.id, role: user.role, schoolId: user.schoolId })
   res.json({ token, user: toPublicUser(user) })

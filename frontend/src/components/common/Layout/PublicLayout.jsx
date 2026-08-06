@@ -4,6 +4,8 @@ import { Facebook, GraduationCap, Instagram, Linkedin, Mail, Menu, Phone, Twitte
 
 const navItems = [
   { label: 'Home', to: '/' },
+  { label: 'Features', to: '/features' },
+  { label: 'Pricing', to: '/pricing' },
   { label: 'About', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ]
@@ -12,17 +14,25 @@ const footerColumns = [
   {
     title: 'Product',
     links: [
-      { label: 'Features', to: '/#features' },
+      { label: 'Features', to: '/features' },
+      { label: 'Pricing', to: '/pricing' },
       { label: 'Why Akademix', to: '/#why-us' },
-      { label: 'Pricing', to: '/register' },
     ],
   },
   {
     title: 'Company',
     links: [
       { label: 'About us', to: '/about' },
+      { label: 'Testimonials', to: '/testimonials' },
       { label: 'Contact', to: '/contact' },
-      { label: 'Sign up', to: '/register' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'FAQ', to: '/faq' },
+      { label: 'Privacy Policy', to: '/privacy' },
+      { label: 'Terms of Service', to: '/terms' },
     ],
   },
 ]
@@ -54,7 +64,7 @@ function SiteHeader() {
       <div className="container-page flex h-16 items-center justify-between">
         <Logo />
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           {navItems.map((item) => (
             <NavLink
               key={item.label}
@@ -114,8 +124,8 @@ function SiteHeader() {
 function SiteFooter() {
   return (
     <footer className="border-t border-line bg-surface-tint">
-      <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
-        <div>
+      <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.1fr]">
+        <div className="sm:col-span-2 lg:col-span-1">
           <Logo />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-soft">
             Akademix is an all-in-one school management platform, helping institutions manage admissions,
@@ -171,8 +181,8 @@ function SiteFooter() {
         <div className="container-page flex flex-col items-center justify-between gap-3 py-5 text-xs text-ink-soft sm:flex-row">
           <p>© {new Date().getFullYear()} Akademix. All rights reserved.</p>
           <div className="flex items-center gap-5">
-            <Link to="/contact" className="hover:text-brand-600">Privacy Policy</Link>
-            <Link to="/contact" className="hover:text-brand-600">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-brand-600">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-brand-600">Terms of Service</Link>
           </div>
         </div>
       </div>

@@ -8,8 +8,15 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// "Remember me" on the login form decides which of these the token lands
+// in: localStorage survives closing the browser, sessionStorage clears
+// when the tab closes. Read both so either kind of session keeps working.
+export function getStoredToken() {
+  return localStorage.getItem('akademix_token') ?? sessionStorage.getItem('akademix_token')
+}
+
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('akademix_token')
+  const token = getStoredToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
