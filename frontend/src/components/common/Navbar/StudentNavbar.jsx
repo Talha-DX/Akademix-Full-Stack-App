@@ -4,7 +4,7 @@ import ProfileMenu from '../ProfileMenu'
 /** Top header bar for the Student portal — menu toggle, sidebar collapse, page title, account menu. */
 export default function StudentNavbar({ title, onOpenMenu, onToggleCollapse, collapsed, userName, userMeta, onNavigate }) {
   return (
-    <header className="flex h-16 items-center justify-between border-b border-white/70 bg-surface-raised/80 px-4 shadow-sm shadow-brand-900/5 backdrop-blur-xl sm:px-8">
+    <header className="relative z-50 flex h-16 items-center justify-between border-b border-white/70 bg-surface-raised/80 px-4 shadow-sm shadow-brand-900/5 backdrop-blur-xl sm:px-8">
       <div className="flex items-center gap-3">
         <button className="lg:hidden" onClick={onOpenMenu} aria-label="Open menu">
           <Menu size={20} />
